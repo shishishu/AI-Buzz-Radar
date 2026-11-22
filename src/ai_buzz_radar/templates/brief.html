@@ -1,21 +1,7 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Product Hunt AI 产品和开发工具发布简报。">
-  <title>{% if brief %}{{ brief.day }} · {% endif %}AI Buzz Radar</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='radar.css') }}">
-</head>
-<body>
-  <a href="#main" class="skip">跳到简报</a>
-  <header class="header">
-    <div class="container masthead">
-      <a href="{{ url_for('brief') }}" class="brand"><span class="brand-mark" aria-hidden="true"></span>AI Buzz Radar</a>
-      <a href="#archive" class="archive-link">简报档案 <span aria-hidden="true">↘</span></a>
-    </div>
-  </header>
-  <main class="container" id="main">
+{% extends "base.html" %}
+{% from "stories.html" import story_cards %}
+{% block title %}{% if brief %}{{ brief.day }} · {% endif %}AI Buzz Radar{% endblock %}
+{% block content %}
     <section class="intro">
       <h1>AI 产品简报</h1>
       <p>追踪 Product Hunt 上的 AI 产品和开发工具发布。</p>
@@ -30,22 +16,7 @@
     <div class="layout">
       <section aria-label="简报内容" class="stories">
       {% if brief and brief.stories %}
-        {% for story in brief.stories %}
-        <article class="story">
-          <div class="story-meta">
-            <time datetime="{{ story.published_on }}">{{ story.published_on }} 发布</time>
-          </div>
-          <h2>{{ story.title }}</h2>
-          <p>{{ story.summary }}</p>
-          <p><strong>为什么重要</strong> {{ story.why_it_matters }}</p>
-          {% if story.caveat %}
-          <p class="caveat"><strong>仍待验证</strong> {{ story.caveat }}</p>
-          {% endif %}
-          <div class="evidence">
-            <a href="{{ story.launch_url }}" rel="noreferrer external">Product Hunt 发布页 <span aria-hidden="true">↗</span></a>
-          </div>
-        </article>
-        {% endfor %}
+        {{ story_cards(brief.stories) }}
       {% elif brief %}
         <p class="empty">这个检索窗口内没有新增且有充分来源的动态。</p>
       {% else %}
@@ -78,6 +49,4 @@
         </section>
       </aside>
     </div>
-  </main>
-</body>
-</html>
+{% endblock %}

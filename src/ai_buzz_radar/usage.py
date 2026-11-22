@@ -100,6 +100,7 @@ class Attempt(Record):
     usage: Usage | None = None
     duration_seconds: float | None = None
     published_stories: int | None = None
+    request_id: str | None = None
 
     @property
     def consumed_usd(self) -> Decimal:

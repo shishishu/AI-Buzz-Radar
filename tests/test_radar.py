@@ -1,10 +1,11 @@
 import json
+import re
 import tempfile
 import unittest
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from openai.types.responses import Response, ResponseOutputItem, ResponseUsage
 from pydantic import TypeAdapter
@@ -59,6 +60,10 @@ def response(*stories: Story, status: str = "completed") -> Response:
                 "status": "completed",
                 "action": {
                     "type": "search",
+                    "queries": [
+                        "site:producthunt.com AI developer tools",
+                        "site:producthunt.com AI MCP",
+                    ],
                     "sources": [
                         {"type": "url", "url": url}
                         for url in [LAUNCH, TOPIC, LEADERBOARD, EXTERNAL]
@@ -170,6 +175,8 @@ class RequestTests(unittest.TestCase):
         result = self.run_once()
         self.assertEqual(result.stories, [story()])
         self.assertEqual(self.store.get(), result)
+        trace = self.store.get_request(result.request_id)
+        self.assertIsNone(trace.user_id)
         self.client.responses.create.assert_called_once()
         payload = self.client.responses.create.call_args.kwargs
         self.assertEqual(payload["model"], "gpt-6.2-sol")
@@ -242,6 +249,95 @@ class RequestTests(unittest.TestCase):
         self.assertEqual(web.get(f"/briefs/{DAY}").status_code, 200)
         self.assertEqual(web.get("/briefs/incorrect").status_code, 404)
         self.assertEqual(web.post("/").status_code, 405)
+
+
+class PersonalResearchTests(unittest.TestCase):
+    def setUp(self):
+        directory = self.enterContext(tempfile.TemporaryDirectory())
+        self.path = Path(directory) / "test.sqlite3"
+        self.store = Store(self.path)
+        self.web = create_app(self.path)
+        self.web.config["RADAR_REQUESTS_ENABLED"] = True
+        self.sdk = Mock()
+        self.sdk.responses.create.return_value = response(story())
+        opener = self.enterContext(patch("ai_buzz_radar.web.open_client"))
+        opener.return_value.__enter__.return_value = self.sdk
+        self.owner = self.web.test_client()
+
+    def form(self, window_start="2026-11-20", topic="MCP"):
+        page = self.owner.get("/research")
+        html = page.get_data(as_text=True)
+        return {
+            **dict(re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]+)"', html)),
+            "window_start": window_start,
+            "window_end": DAY.isoformat(),
+            "topic": topic,
+        }
+
+    def test_same_day_topics_get_independent_records_and_keep_the_public_brief(self):
+        public = run_once(self.sdk, self.store, day=DAY, days=3, budget_usd=BUDGET)
+        first = self.form()
+        result = self.owner.post("/research", data=first)
+        self.assertEqual(result.status_code, 303)
+        duplicate = self.owner.post("/research", data=first)
+        self.assertEqual(duplicate.location, result.location)
+        second = self.form(window_start="2026-11-21", topic="AI video")
+        self.assertNotEqual(second["request_id"], first["request_id"])
+        self.assertEqual(self.owner.post("/research", data=second).status_code, 303)
+        self.assertEqual(self.sdk.responses.create.call_count, 3)
+        self.assertEqual(self.store.get(), public)
+
+        trace = self.owner.get(result.location + "/trace").json
+        self.assertEqual(trace["request_id"], first["request_id"])
+        self.assertEqual(trace["input"], self.sdk.responses.create.call_args_list[1].kwargs)
+        self.assertEqual(trace["selection"]["topic"], "MCP")
+        self.assertEqual(
+            trace["search_queries"],
+            [
+                "site:producthunt.com AI developer tools",
+                "site:producthunt.com AI MCP",
+            ],
+        )
+        self.assertEqual(trace["opened_pages"], [LAUNCH])
+        self.assertEqual(trace["response"]["id"], "resp_1")
+        self.assertIsNone(trace["http_request_id"])
+        self.assertEqual(trace["result"]["stories"][0]["launch_url"], LAUNCH)
+        self.assertEqual(
+            Decimal(trace["attempt"]["usage"]["estimated_cost_usd"]), Decimal("0.0599")
+        )
+        personal_two = self.store.get_request(second["request_id"])
+        self.assertEqual(personal_two.user_id, trace["user_id"])
+        self.assertEqual(personal_two.selection.window_start, date(2026, 11, 21))
+        self.assertEqual(personal_two.selection.topic, "AI video")
+
+    def test_different_browser_cannot_load_another_browsers_history_or_trace(self):
+        fields = self.form()
+        created = self.owner.post("/research", data=fields)
+        guest = self.web.test_client()
+        history = guest.get("/research")
+        self.assertIn("HttpOnly", history.headers["Set-Cookie"])
+        self.assertIn("SameSite=Lax", history.headers["Set-Cookie"])
+        self.assertNotIn(fields["request_id"], history.get_data(as_text=True))
+        self.assertEqual(guest.get(created.location).status_code, 404)
+        self.assertEqual(guest.get(created.location + "/trace").status_code, 404)
+        self.assertEqual(guest.post("/research", data=fields).status_code, 403)
+        self.sdk.responses.create.assert_called_once()
+        self.assertEqual(
+            self.owner.get(created.location).headers["Cache-Control"], "private, no-store"
+        )
+
+    def test_invalid_range_and_budget_denial_do_not_send_an_api_request(self):
+        invalid = self.owner.post("/research", data=self.form(window_start="2026-11-23"))
+        self.assertEqual(invalid.status_code, 400)
+        self.store.reserve(Attempt(day=DAY, started_at=STARTED), BUDGET)
+        fields = self.form()
+        blocked = self.owner.post("/research", data=fields)
+        self.assertEqual(blocked.status_code, 303)
+        trace = self.owner.get(blocked.location + "/trace").json
+        self.assertEqual(trace["status"], "budget_blocked")
+        self.assertIsNone(trace["attempt"])
+        self.assertIsNone(trace["response"])
+        self.sdk.responses.create.assert_not_called()
 
 
 if __name__ == "__main__":

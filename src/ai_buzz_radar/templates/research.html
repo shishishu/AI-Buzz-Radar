@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}按需生成 · AI Buzz Radar{% endblock %}
+{% block content %}
+<section class="intro">
+  <h1>按需生成</h1>
+  <p>按 Product Hunt 发布日期和主题生成专属简报。</p>
+</section>
+<div class="layout">
+  <form class="story research-form" method="post" action="{{ url_for('submit_research') }}">
+    <input type="hidden" name="request_id" value="{{ request_id }}">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    <div class="form-dates">
+      <label>开始日期
+        <input type="date" name="window_start" value="{{ values.window_start }}" max="{{ today }}" required>
+      </label>
+      <label>结束日期
+        <input type="date" name="window_end" value="{{ values.window_end }}" max="{{ today }}" required>
+      </label>
+    </div>
+    <label>主题 <span class="optional">（选填）</span>
+      <input type="text" name="topic" value="{{ values.topic }}" maxlength="240" placeholder="例如 MCP、AI 视频、代码助手">
+    </label>
+    {% if error %}
+    <p class="form-error" role="alert">{{ error }}</p>
+    {% elif not enabled %}
+    <p class="form-error">服务暂未配置生成凭据。</p>
+    {% endif %}
+    <button type="submit"{% if not enabled %} disabled{% endif %}>生成简报</button>
+  </form>
+  <aside class="panel" aria-labelledby="requests-heading">
+    <h2 id="requests-heading">此浏览器的请求</h2>
+    {% if history %}
+    <nav class="request-history" aria-label="请求历史">
+      {% for item in history %}
+      <a href="{{ url_for('research_result', request_id=item.request_id) }}">
+        <span>{{ item.selection.topic or "全部 AI 产品" }}</span>
+        <time datetime="{{ item.requested_at.isoformat() }}">{{ item.requested_at.strftime("%m-%d %H:%M") }}</time>
+      </a>
+      {% endfor %}
+    </nav>
+    {% else %}
+    <p>暂无请求。</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

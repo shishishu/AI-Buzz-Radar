@@ -9,10 +9,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from openai import APIError, OpenAI
-from pydantic import ValidationError
 
-from ai_buzz_radar.agent import TIMEZONE, run_research
-from ai_buzz_radar.models import DATABASE_PATH, Brief
+from ai_buzz_radar.agent import TIMEZONE, describe_error, open_client, run_research
+from ai_buzz_radar.models import DATABASE_PATH, Brief, Selection, start_date
 from ai_buzz_radar.store import Store
 from ai_buzz_radar.usage import DEFAULT_BUDGET_USD
 
@@ -27,19 +26,12 @@ def run_once(
         if existing is not None and not force:
             logger.info("Using the saved brief for %s", day)
             return existing
-        brief, attempt = run_research(client, store, day=day, days=days, budget_usd=budget_usd)
-        store.publish(brief, attempt)
-        return brief
-
-
-def describe_error(error: Exception) -> str:
-    if isinstance(error, APIError):
-        status = getattr(error, "status_code", None)
-        detail = f" ({status}, {error.code})" if status else ""
-        return f"OpenAI API {type(error).__name__}{detail}"
-    if isinstance(error, ValidationError):
-        return f"Structured brief validation failed ({error.error_count()} errors)"
-    return str(error)
+        return run_research(
+            client,
+            store,
+            selection=Selection(window_start=start_date(day, days), window_end=day),
+            budget_usd=budget_usd,
+        )
 
 
 def usage_report(store: Store, day: date | None) -> str:
@@ -96,7 +88,9 @@ def main(argv: list[str] | None = None) -> int:
     show.add_argument("--day", type=date.fromisoformat)
     usage = commands.add_parser("usage", help="Print request usage and budget accounting as JSON")
     usage.add_argument("--day", type=date.fromisoformat)
-    serve = commands.add_parser("serve", help="Start the local read-only site")
+    trace = commands.add_parser("request", help="Print a saved request and its tool trace as JSON")
+    trace.add_argument("request_id")
+    serve = commands.add_parser("serve", help="Start the local site")
     serve.add_argument("--port", type=int, default=8000)
     args = parser.parse_args(argv)
 
@@ -107,6 +101,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     store = Store(args.db)
+    if args.command == "request":
+        saved = store.get_request(args.request_id)
+        if saved is None:
+            parser.exit(1, "No saved request with that ID\n")
+        print(json.dumps(store.export_request(saved), ensure_ascii=False, indent=2))
+        return 0
     if args.command == "usage":
         print(usage_report(store, args.day))
         return 0
@@ -132,11 +132,11 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("Set OPENAI_API_KEY or provide it through .env.local")
 
     try:
-        with OpenAI(base_url="https://api.openai.com/v1", timeout=240, max_retries=0) as client:
+        with open_client() as client:
             brief = run_once(
                 client, store, day=day, days=args.days, budget_usd=args.budget_usd, force=args.force
             )
-        print(f"{brief.day} · {len(brief.stories)} stories · attempt {brief.attempt_id}")
+        print(f"{brief.day} · {len(brief.stories)} stories · request {brief.request_id}")
     except (APIError, RuntimeError, ValueError) as error:
         logger.error("%s. See radar usage for request accounting.", describe_error(error))
         return 1

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% from "stories.html" import story_cards %}
+{% block title %}请求结果 · AI Buzz Radar{% endblock %}
+{% block content %}
+<section class="intro">
+  <h1>{{ trace.selection.topic or "全部 AI 产品" }}</h1>
+  <div class="issue-meta">
+    <span>发布日期 {{ trace.selection.window_start }} 至 {{ trace.selection.window_end }}</span>
+    {% if trace.result %}<span>{{ trace.result.stories | length }} 条动态</span>{% endif %}
+    <a href="{{ url_for('research') }}">新建请求</a>
+  </div>
+</section>
+<div class="layout">
+  <section aria-label="请求结果" class="stories">
+    {% if trace.result and trace.result.stories %}
+      {{ story_cards(trace.result.stories) }}
+    {% elif trace.result %}
+      <p class="empty">这个窗口内没有符合主题且有站内证据的发布。</p>
+    {% elif trace.error %}
+      <p class="empty" role="alert">{{ trace.error }}</p>
+    {% else %}
+      <p class="empty">请求尚未收到结果。可刷新查看状态。</p>
+    {% endif %}
+  </section>
+  <aside class="panel trace-panel" aria-labelledby="trace-heading">
+    <h2 id="trace-heading">请求记录</h2>
+    <p class="request-id"><code>{{ trace.request_id }}</code></p>
+    {% if attempt and attempt.usage %}
+    <dl>
+      <div><dt>估算费用</dt><dd>${{ attempt.usage.estimated_cost_usd }}</dd></div>
+      <div><dt>搜索动作</dt><dd>{{ attempt.usage.web_searches }}</dd></div>
+      <div><dt>打开页面</dt><dd>{{ attempt.usage.web_pages_opened }}</dd></div>
+    </dl>
+    {% endif %}
+    <a href="{{ url_for('research_trace', request_id=trace.request_id) }}">查看完整追踪 JSON <span aria-hidden="true">↗</span></a>
+  </aside>
+</div>
+{% endblock %}

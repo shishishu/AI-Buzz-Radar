@@ -15,4 +15,4 @@ RUN uv sync --locked --no-dev --no-editable \
 
 USER radar
 EXPOSE 8000
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "ai_buzz_radar.web:create_app()"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "300", "ai_buzz_radar.web:create_app()"]

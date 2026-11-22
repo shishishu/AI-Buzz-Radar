@@ -1,8 +1,9 @@
 import re
 from datetime import date, datetime, timedelta
+from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 PRODUCT_HUNT = "producthunt.com"
 DATABASE_PATH = "data/product-hunt.sqlite3"
@@ -64,6 +65,23 @@ class Research(Record):
     stories: list[Story]
 
 
+class Selection(Record):
+    window_start: date
+    window_end: date
+    topic: str = Field(default="", max_length=240)
+
+    @field_validator("topic", mode="before")
+    @classmethod
+    def strip_topic(cls, value: Any) -> Any:
+        return value.strip() if isinstance(value, str) else value
+
+    @model_validator(mode="after")
+    def check_window(self) -> "Selection":
+        if self.window_start > self.window_end:
+            raise ValueError("Start date must be on or before the end date")
+        return self
+
+
 class Brief(Record):
     day: date
     window_start: date
@@ -73,6 +91,47 @@ class Brief(Record):
     launch_pages_observed: int
     rejected_stories: int
     duplicate_stories: int
+    request_id: str | None = None
+
+
+class RequestTrace(Record):
+    request_id: str
+    user_id: str | None
+    requested_at: datetime
+    selection: Selection
+    input: dict[str, Any]
+    status: str = "pending"
+    attempt_id: int | None = None
+    http_request_id: str | None = None
+    response: dict[str, Any] | None = None
+    result: Brief | None = None
+    error: str | None = None
+
+    @property
+    def web_actions(self) -> list[dict[str, Any]]:
+        output = self.response.get("output", []) if self.response else []
+        return [item for item in output if item.get("type") == "web_search_call"]
+
+    @property
+    def search_queries(self) -> list[str]:
+        queries = []
+        for item in self.web_actions:
+            action = item["action"]
+            if action["type"] == "search":
+                queries.extend(
+                    action.get("queries") or ([action["query"]] if action.get("query") else [])
+                )
+        return queries
+
+    @property
+    def opened_pages(self) -> list[str]:
+        return [
+            item["action"]["url"]
+            for item in self.web_actions
+            if item["status"] == "completed"
+            and item["action"]["type"] == "open_page"
+            and item["action"].get("url")
+        ]
 
 
 def build_brief(
@@ -84,8 +143,9 @@ def build_brief(
     observed: set[str],
     previously_published: set[str],
     attempt_id: int,
+    require_launch_pages: bool = True,
 ) -> Brief:
-    if not observed:
+    if not observed and (require_launch_pages or research.stories):
         raise ValueError("Search returned no verifiable Product Hunt launch pages")
 
     stories = []
