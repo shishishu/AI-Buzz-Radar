@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
@@ -7,8 +8,6 @@ from ai_buzz_radar.models import Record
 
 MODEL = "gpt-6.2-sol"
 REASONING_EFFORT = "high"
-MAX_WEB_CALLS = 6
-MAX_OUTPUT_TOKENS = 6_500
 DEFAULT_BUDGET_USD = Decimal("1")
 RATE_DATE = "2026-11-22"
 STANDARD_INPUT = Decimal("2")
@@ -19,11 +18,26 @@ STANDARD_OUTPUT = Decimal("10")
 WEB_SEARCH_ACTION = Decimal("0.01")
 MILLION = 1_000_000
 
-# The documented web-search context window is 128k. Allow additional input headroom and
-# reserve for each requested web action plus one before sending the only API request.
-REQUEST_RESERVE_USD = (
-    200_000 * STANDARD_CACHE_WRITE_30M + MAX_OUTPUT_TOKENS * STANDARD_OUTPUT
-) / MILLION + (MAX_WEB_CALLS + 1) * WEB_SEARCH_ACTION
+
+@dataclass(frozen=True)
+class RequestLimits:
+    web_calls: int
+    output_tokens: int
+    reservation_input_tokens: int
+
+    @property
+    def reserve_usd(self) -> Decimal:
+        # Allow input headroom over the documented 128k web-search context and
+        # reserve for each requested web action plus one.
+        return (
+            self.reservation_input_tokens * STANDARD_CACHE_WRITE_30M
+            + self.output_tokens * STANDARD_OUTPUT
+        ) / MILLION + (self.web_calls + 1) * WEB_SEARCH_ACTION
+
+
+DEFAULT_LIMITS = RequestLimits(web_calls=4, output_tokens=6500, reservation_input_tokens=150_000)
+COMPACT_LIMITS = RequestLimits(web_calls=2, output_tokens=1600, reservation_input_tokens=129_000)
+REQUEST_RESERVE_USD = DEFAULT_LIMITS.reserve_usd
 
 
 def parse_budget(value: str) -> Decimal:
@@ -109,6 +123,8 @@ class Attempt(Record):
     response_status: str | None = None
     usage: Usage | None = None
     duration_seconds: float | None = None
+    ttft_ms: float | None = None
+    tpot_ms: float | None = None
     published_stories: int | None = None
     request_id: str | None = None
 

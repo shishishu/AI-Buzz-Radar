@@ -7,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 PRODUCT_HUNT = "producthunt.com"
 DATABASE_PATH = "data/product-hunt.sqlite3"
-HISTORY_DAYS = 14
 SLUG = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 LAUNCH_PATH = re.compile(rf"/(?:(?:posts|products)/{SLUG}|products/{SLUG}/launches/{SLUG})")
 PRODUCT_HUNT_LINK = r"\[(?:www\.)?producthunt\.com\]\(https?://[^\s)]+\)"
@@ -59,6 +58,24 @@ class Story(Record):
     @classmethod
     def clean_inline_citations(cls, value: str | None) -> str | None:
         return INLINE_CITATION.sub("", value).strip() if value is not None else None
+
+    @property
+    def identity(self) -> str:
+        key = launch_key(self.launch_url)
+        if key is None:
+            raise ValueError("A feed item requires a Product Hunt launch URL")
+        if key.startswith("/products/") and key.count("/") == 2 and "?" not in key:
+            return f"{launch_slug(key)}@{self.published_on}"
+        return launch_slug(key)
+
+    @property
+    def title_key(self) -> str:
+        return re.sub(r"[^\w]+", "", self.title.casefold()) or self.title.casefold()
+
+
+class FeedItem(Record):
+    id: int
+    story: Story
 
 
 class Research(Record):
@@ -162,12 +179,12 @@ def build_brief(
         ):
             rejected += 1
             continue
-        slug = launch_slug(key)
-        if slug in seen:
+        identity = story.identity
+        if identity in seen:
             duplicates += 1
             continue
         stories.append(story.model_copy(update={"launch_url": f"https://www.{PRODUCT_HUNT}{key}"}))
-        seen.add(slug)
+        seen.add(identity)
         if len(stories) == 5:
             break
 

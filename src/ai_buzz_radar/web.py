@@ -1,24 +1,19 @@
 import hashlib
 import hmac
-import logging
 import os
 import re
 import secrets
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
-from uuid import UUID, uuid4
 
-from flask import Flask, abort, make_response, redirect, render_template, request, url_for
-from openai import APIError
+from flask import Flask, abort, make_response, redirect, render_template, request
 
-from ai_buzz_radar.agent import TIMEZONE, describe_error, open_client, run_research
-from ai_buzz_radar.models import DATABASE_PATH, RequestTrace, Selection, start_date
-from ai_buzz_radar.store import RequestExists, Store
-from ai_buzz_radar.usage import DEFAULT_BUDGET_USD, parse_budget
+from ai_buzz_radar.agent import TIMEZONE
+from ai_buzz_radar.models import DATABASE_PATH, launch_key
+from ai_buzz_radar.store import Store
 
 COOKIE_NAME = "radar_browser"
 BROWSER_TOKEN = re.compile(r"[A-Za-z0-9_-]{43}")
-logger = logging.getLogger(__name__)
 
 
 def browser_token() -> str | None:
@@ -30,155 +25,78 @@ def browser_id(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
-def form_token(token: str, request_id: str) -> str:
-    return hmac.digest(token.encode(), f"radar-request:{request_id}".encode(), "sha256").hex()
+def view_token(token: str) -> str:
+    return hmac.digest(token.encode(), b"radar-feed-view", "sha256").hex()
+
+
+def set_browser_cookie(response, token: str) -> None:
+    response.set_cookie(
+        COOKIE_NAME,
+        token,
+        max_age=365 * 24 * 60 * 60,
+        httponly=True,
+        samesite="Lax",
+        secure=request.is_secure,
+    )
 
 
 def create_app(database: Path | None = None) -> Flask:
     app = Flask(__name__)
-    app.config["RADAR_REQUESTS_ENABLED"] = bool(os.environ.get("OPENAI_API_KEY"))
-    app.config["RADAR_BUDGET_USD"] = parse_budget(
-        os.getenv("RADAR_BUDGET_USD", str(DEFAULT_BUDGET_USD))
-    )
-    app.config["MAX_CONTENT_LENGTH"] = 16_384
+    app.config["MAX_CONTENT_LENGTH"] = 4096
     store = Store(database or Path(os.getenv("RADAR_DB", DATABASE_PATH)))
 
     @app.after_request
     def protect(response):
         response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; style-src 'self'; form-action 'self'; "
+            "default-src 'none'; style-src 'self'; script-src 'self'; connect-src 'self'; "
             "base-uri 'none'; frame-ancestors 'none'"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "no-referrer"
-        if request.path.startswith("/research"):
+        if request.endpoint in {"feed", "view_item", "open_source"}:
             response.headers["Cache-Control"] = "private, no-store"
             response.vary.add("Cookie")
         return response
 
     @app.get("/")
-    @app.get("/briefs/<day>")
-    def brief(day: str | None = None):
-        if day is None:
-            selected = store.get()
-        else:
-            try:
-                selected = store.get(date.fromisoformat(day))
-            except ValueError:
-                abort(404)
-            if selected is None:
-                abort(404)
-        return render_template("brief.html", brief=selected, days=store.days())
-
-    def research_form(
-        *, values: dict[str, str] | None = None, error: str | None = None, status: int = 200
-    ):
-        previous_token = browser_token()
-        token = previous_token or secrets.token_urlsafe(32)
-        request_id = str(uuid4())
-        today = datetime.now(TIMEZONE).date()
-        if values is None:
-            values = {
-                "window_start": start_date(today, 3).isoformat(),
-                "window_end": today.isoformat(),
-                "topic": "",
-            }
+    def feed():
+        existing = browser_token()
+        token = existing or secrets.token_urlsafe(32)
+        if request.method == "GET":
+            store.record_event(browser_id(token), "feed_view", datetime.now(TIMEZONE))
         response = make_response(
-            render_template(
-                "research.html",
-                values=values,
-                today=today,
-                history=store.request_history(browser_id(token)),
-                request_id=request_id,
-                csrf=form_token(token, request_id),
-                enabled=app.config["RADAR_REQUESTS_ENABLED"],
-                error=error,
-            ),
-            status,
+            render_template("feed.html", items=store.feed(), csrf=view_token(token))
         )
-        if previous_token is None:
-            response.set_cookie(
-                COOKIE_NAME,
-                token,
-                max_age=365 * 24 * 60 * 60,
-                httponly=True,
-                samesite="Lax",
-                secure=request.is_secure,
-            )
+        if existing is None and request.method == "GET":
+            set_browser_cookie(response, token)
         return response
 
-    def owned_request(request_id: str) -> RequestTrace:
+    @app.post("/events/view/<int:item_id>")
+    def view_item(item_id: int):
         token = browser_token()
-        trace = store.get_request(request_id) if token else None
-        if trace is None or trace.user_id != browser_id(token):
-            abort(404)
-        return trace
-
-    @app.get("/research")
-    def research():
-        return research_form()
-
-    @app.post("/research")
-    def submit_research():
-        token = browser_token()
-        request_id = request.form.get("request_id", "")
         csrf = request.form.get("csrf", "")
-        if (
-            token is None
-            or not csrf.isascii()
-            or not hmac.compare_digest(csrf, form_token(token, request_id))
-        ):
+        if token is None or not csrf.isascii() or not hmac.compare_digest(csrf, view_token(token)):
             abort(403)
-        try:
-            key = UUID(request_id)
-            if key.version != 4 or str(key) != request_id:
-                abort(400)
-        except ValueError:
-            abort(400)
-        user_id = browser_id(token)
-        if store.get_request(request_id) is not None:
-            owned_request(request_id)
-            return redirect(url_for("research_result", request_id=request_id), code=303)
+        if store.feed_item(item_id) is None:
+            abort(404)
+        store.record_event(browser_id(token), "item_view", datetime.now(TIMEZONE), item_id)
+        return "", 204
 
-        values = {name: request.form.get(name, "") for name in Selection.model_fields}
-        try:
-            selection = Selection.model_validate(values)
-            if selection.window_end > datetime.now(TIMEZONE).date():
-                raise ValueError("Future end date")
-        except ValueError:
-            return research_form(
-                values=values, error="请检查日期顺序、未来日期和主题长度。", status=400
-            )
-        if not app.config["RADAR_REQUESTS_ENABLED"]:
-            return research_form(values=values, error="服务暂未配置生成凭据。", status=503)
-
-        try:
-            with open_client() as client:
-                run_research(
-                    client,
-                    store,
-                    selection=selection,
-                    budget_usd=app.config["RADAR_BUDGET_USD"],
-                    user_id=user_id,
-                    request_id=request_id,
-                )
-        except RequestExists:
-            owned_request(request_id)
-        except (APIError, RuntimeError, ValueError) as error:
-            logger.info("Research request %s: %s", request_id, describe_error(error))
-            owned_request(request_id)
-        return redirect(url_for("research_result", request_id=request_id), code=303)
-
-    @app.get("/research/<request_id>")
-    def research_result(request_id: str):
-        trace = owned_request(request_id)
-        return render_template(
-            "research_result.html", trace=trace, attempt=store.get_attempt(trace.attempt_id)
-        )
-
-    @app.get("/research/<request_id>/trace")
-    def research_trace(request_id: str):
-        return store.export_request(owned_request(request_id))
+    @app.get("/out/<int:item_id>")
+    def open_source(item_id: int):
+        story = store.feed_item(item_id)
+        key = launch_key(story.launch_url) if story else None
+        if key is None:
+            abort(404)
+        response = redirect(f"https://www.producthunt.com{key}")
+        purpose = request.headers.get("Sec-Purpose", request.headers.get("Purpose", ""))
+        if request.method == "GET" and "prefetch" not in purpose.lower():
+            existing = browser_token()
+            token = existing or secrets.token_urlsafe(32)
+            store.record_event(browser_id(token), "source_click", datetime.now(TIMEZONE), item_id)
+            if existing is None:
+                set_browser_cookie(response, token)
+        return response
 
     @app.get("/healthz")
     def health():

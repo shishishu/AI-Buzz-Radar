@@ -24,7 +24,7 @@ radar = "ai_buzz_radar.cli:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-ai_buzz_radar = ["templates/*.html", "static/*.css"]
+ai_buzz_radar = ["templates/*.html", "static/*.css", "static/*.js"]
 
 [tool.ruff]
 line-length = 100

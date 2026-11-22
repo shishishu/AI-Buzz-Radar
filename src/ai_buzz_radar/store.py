@@ -1,11 +1,11 @@
 import fcntl
 import sqlite3
 from contextlib import closing, contextmanager
-from datetime import date, timedelta
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from ai_buzz_radar.models import Brief, RequestTrace
+from ai_buzz_radar.models import Brief, FeedItem, RequestTrace, Story, launch_key
 from ai_buzz_radar.usage import Attempt
 
 
@@ -14,10 +14,6 @@ class RunInProgress(RuntimeError):
 
 
 class BudgetExceeded(RuntimeError):
-    pass
-
-
-class RequestExists(RuntimeError):
     pass
 
 
@@ -43,55 +39,133 @@ class Store:
                     requested_at TEXT NOT NULL,
                     payload TEXT NOT NULL
                 );
-                CREATE INDEX IF NOT EXISTS research_requests_user
-                    ON research_requests(user_id, requested_at DESC);
+                CREATE TABLE IF NOT EXISTS feed_runs (
+                    day TEXT PRIMARY KEY,
+                    request_id TEXT NOT NULL REFERENCES research_requests(request_id)
+                );
+                CREATE TABLE IF NOT EXISTS feed_items (
+                    id INTEGER PRIMARY KEY,
+                    identity TEXT NOT NULL UNIQUE,
+                    published_on TEXT NOT NULL,
+                    title_key TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    UNIQUE(published_on, title_key)
+                );
+                CREATE INDEX IF NOT EXISTS feed_items_date ON feed_items(published_on DESC, id);
+                CREATE TABLE IF NOT EXISTS visitors (
+                    user_id TEXT PRIMARY KEY,
+                    first_seen_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS visitor_events (
+                    id INTEGER PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES visitors(user_id),
+                    kind TEXT NOT NULL CHECK(kind IN (
+                        'feed_view', 'item_view', 'source_click', 'feedback'
+                    )),
+                    item_id INTEGER REFERENCES feed_items(id),
+                    occurred_at TEXT NOT NULL,
+                    value TEXT,
+                    CHECK((kind = 'feed_view') = (item_id IS NULL)),
+                    CHECK((kind = 'feedback') = (value IS NOT NULL))
+                );
+                CREATE INDEX IF NOT EXISTS visitor_events_user
+                    ON visitor_events(user_id, occurred_at DESC);
                 """)
+            if db.execute("PRAGMA user_version").fetchone()[0] == 0:
+                self.migrate_briefs(db)
+
+    @staticmethod
+    def migrate_briefs(db: sqlite3.Connection) -> None:
+        with db:
+            db.execute("BEGIN IMMEDIATE")
+            if db.execute("PRAGMA user_version").fetchone()[0] != 0:
+                return
+            for (payload,) in db.execute("SELECT payload FROM product_hunt_briefs ORDER BY day"):
+                brief = Brief.model_validate_json(payload)
+                for story in brief.stories:
+                    if launch_key(story.launch_url) is not None:
+                        Store.insert_story(db, story)
+            db.execute("PRAGMA user_version = 1")
 
     def connect(self) -> sqlite3.Connection:
-        return sqlite3.connect(self.path, timeout=10)
+        db = sqlite3.connect(self.path, timeout=10)
+        db.execute("PRAGMA foreign_keys = ON")
+        return db
 
-    def get(self, day: date | None = None) -> Brief | None:
+    @staticmethod
+    def insert_story(db: sqlite3.Connection, story: Story) -> bool:
+        cursor = db.execute(
+            """INSERT INTO feed_items(identity, published_on, title_key, payload)
+               VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING""",
+            (
+                story.identity,
+                story.published_on.isoformat(),
+                story.title_key,
+                story.model_dump_json(),
+            ),
+        )
+        return cursor.rowcount == 1
+
+    def feed(self, start: date = date.min, end: date = date.max, limit: int = 40) -> list[FeedItem]:
         with closing(self.connect()) as db:
+            rows = db.execute(
+                """SELECT id, payload FROM feed_items WHERE published_on BETWEEN ? AND ?
+                   ORDER BY published_on DESC, id LIMIT ?""",
+                (start.isoformat(), end.isoformat(), limit),
+            )
+            return [
+                FeedItem(id=item_id, story=Story.model_validate_json(payload))
+                for item_id, payload in rows
+            ]
+
+    def feed_item(self, item_id: int) -> Story | None:
+        with closing(self.connect()) as db:
+            row = db.execute("SELECT payload FROM feed_items WHERE id = ?", (item_id,)).fetchone()
+        return Story.model_validate_json(row[0]) if row else None
+
+    def feed_run(self, day: date | None = None) -> RequestTrace | None:
+        with closing(self.connect()) as db:
+            query = """SELECT research_requests.payload FROM feed_runs
+                       JOIN research_requests USING (request_id)"""
             if day is None:
-                row = db.execute(
-                    "SELECT payload FROM product_hunt_briefs ORDER BY day DESC LIMIT 1"
-                ).fetchone()
+                row = db.execute(query + " ORDER BY day DESC LIMIT 1").fetchone()
             else:
-                row = db.execute(
-                    "SELECT payload FROM product_hunt_briefs WHERE day = ?", (day.isoformat(),)
-                ).fetchone()
-        return Brief.model_validate_json(row[0]) if row else None
+                row = db.execute(query + " WHERE day = ?", (day.isoformat(),)).fetchone()
+        return RequestTrace.model_validate_json(row[0]) if row else None
 
-    def days(self, limit: int = 30) -> list[str]:
-        with closing(self.connect()) as db:
-            rows = db.execute(
-                "SELECT day FROM product_hunt_briefs ORDER BY day DESC LIMIT ?", (limit,)
+    def record_event(
+        self,
+        user_id: str,
+        kind: str,
+        occurred_at: datetime,
+        item_id: int | None = None,
+        *,
+        value: str | None = None,
+    ) -> None:
+        timestamp = occurred_at.isoformat()
+        with closing(self.connect()) as db, db:
+            db.execute(
+                """INSERT INTO visitors(user_id, first_seen_at, last_seen_at) VALUES (?, ?, ?)
+                   ON CONFLICT(user_id) DO UPDATE SET
+                   last_seen_at = max(visitors.last_seen_at, excluded.last_seen_at)""",
+                (user_id, timestamp, timestamp),
             )
-            return [row[0] for row in rows]
-
-    def history(self, day: date, days: int) -> list[Brief]:
-        with closing(self.connect()) as db:
-            rows = db.execute(
-                """SELECT payload FROM product_hunt_briefs
-                   WHERE day >= ? AND day < ? ORDER BY day DESC""",
-                ((day - timedelta(days=days)).isoformat(), day.isoformat()),
+            db.execute(
+                """INSERT INTO visitor_events(user_id, kind, item_id, occurred_at, value)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (user_id, kind, item_id, timestamp, value),
             )
-            return [Brief.model_validate_json(row[0]) for row in rows]
 
     def finish(self, brief: Brief, attempt: Attempt, trace: RequestTrace) -> None:
-        trace.result = brief
-        trace.status = "completed"
         with closing(self.connect()) as db, db:
-            if trace.user_id is None:
-                attempt.status = "published"
-                attempt.published_stories = len(brief.stories)
-                db.execute(
-                    """INSERT INTO product_hunt_briefs(day, payload) VALUES (?, ?)
-                       ON CONFLICT(day) DO UPDATE SET payload = excluded.payload""",
-                    (brief.day.isoformat(), brief.model_dump_json()),
-                )
-            else:
-                attempt.status = "completed"
+            new_stories = [story for story in brief.stories if self.insert_story(db, story)]
+            brief.duplicate_stories += len(brief.stories) - len(new_stories)
+            brief.stories = new_stories
+            trace.result = brief
+            trace.status = "completed"
+            attempt.status = "published"
+            attempt.published_stories = len(new_stories)
             self._update_attempt(db, brief.attempt_id, attempt, trace)
 
     @contextmanager
@@ -100,23 +174,13 @@ class Store:
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except BlockingIOError as error:
-                raise RunInProgress("Another research run is in progress") from error
+                raise RunInProgress("Another feed run is in progress") from error
             yield
 
-    def reserve(
-        self, attempt: Attempt, budget_usd: Decimal, trace: RequestTrace | None = None
-    ) -> int:
+    def reserve(self, attempt: Attempt, budget_usd: Decimal, trace: RequestTrace) -> int:
         budget_error = None
-        attempt_id = None
         with closing(self.connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
-            if (
-                trace
-                and db.execute(
-                    "SELECT 1 FROM research_requests WHERE request_id = ?", (trace.request_id,)
-                ).fetchone()
-            ):
-                raise RequestExists(trace.request_id)
             consumed = sum(
                 (
                     Attempt.model_validate_json(row[0]).consumed_usd
@@ -129,31 +193,33 @@ class Store:
                     f"Budget ${budget_usd}: ${consumed:.6f} used or reserved, "
                     f"${attempt.reserved_usd:.3f} required for the next request"
                 )
+                trace.status = "budget_blocked"
+                trace.error = str(budget_error)
             else:
                 cursor = db.execute(
                     "INSERT INTO attempts(day, payload) VALUES (?, ?)",
                     (attempt.day.isoformat(), attempt.model_dump_json()),
                 )
-                attempt_id = cursor.lastrowid
-            if trace:
-                trace.attempt_id = attempt_id
-                if budget_error:
-                    trace.status = "budget_blocked"
-                    trace.error = str(budget_error)
-                db.execute(
-                    """INSERT INTO research_requests(request_id, user_id, requested_at, payload)
-                       VALUES (?, ?, ?, ?)""",
-                    (
-                        trace.request_id,
-                        trace.user_id,
-                        trace.requested_at.isoformat(),
-                        trace.model_dump_json(),
-                    ),
-                )
+                trace.attempt_id = cursor.lastrowid
+            db.execute(
+                """INSERT INTO research_requests(request_id, user_id, requested_at, payload)
+                   VALUES (?, ?, ?, ?)""",
+                (
+                    trace.request_id,
+                    trace.user_id,
+                    trace.requested_at.isoformat(),
+                    trace.model_dump_json(),
+                ),
+            )
+            db.execute(
+                """INSERT INTO feed_runs(day, request_id) VALUES (?, ?)
+                   ON CONFLICT(day) DO UPDATE SET request_id = excluded.request_id""",
+                (attempt.day.isoformat(), trace.request_id),
+            )
         if budget_error:
             raise budget_error
-        assert attempt_id is not None
-        return attempt_id
+        assert trace.attempt_id is not None
+        return trace.attempt_id
 
     def update_attempt(self, attempt_id: int, attempt: Attempt, trace: RequestTrace) -> None:
         with closing(self.connect()) as db, db:
@@ -178,15 +244,6 @@ class Store:
                 "SELECT payload FROM research_requests WHERE request_id = ?", (request_id,)
             ).fetchone()
         return RequestTrace.model_validate_json(row[0]) if row else None
-
-    def request_history(self, user_id: str, limit: int = 30) -> list[RequestTrace]:
-        with closing(self.connect()) as db:
-            rows = db.execute(
-                """SELECT payload FROM research_requests WHERE user_id = ?
-                   ORDER BY requested_at DESC LIMIT ?""",
-                (user_id, limit),
-            )
-            return [RequestTrace.model_validate_json(row[0]) for row in rows]
 
     def get_attempt(self, attempt_id: int | None) -> Attempt | None:
         if attempt_id is None:

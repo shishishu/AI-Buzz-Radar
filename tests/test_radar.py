@@ -1,21 +1,23 @@
 import json
 import re
+import sqlite3
 import tempfile
 import unittest
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import Mock, patch
+from types import SimpleNamespace
+from unittest.mock import MagicMock, Mock, patch
 
 from openai.types.responses import Response, ResponseOutputItem, ResponseUsage
 from pydantic import TypeAdapter
 
 from ai_buzz_radar.agent import TIMEZONE
-from ai_buzz_radar.cli import run_once, usage_report
+from ai_buzz_radar.cli import due_day, run_once, usage_report
 from ai_buzz_radar.models import Research, Story, build_brief, launch_key, launch_slug
 from ai_buzz_radar.store import BudgetExceeded, RunInProgress, Store
-from ai_buzz_radar.usage import REQUEST_RESERVE_USD, Attempt, Usage
-from ai_buzz_radar.web import create_app
+from ai_buzz_radar.usage import COMPACT_LIMITS, REQUEST_RESERVE_USD, Usage
+from ai_buzz_radar.web import COOKIE_NAME, browser_id, create_app
 
 DAY = date(2026, 11, 22)
 WINDOW_START = date(2026, 11, 20)
@@ -66,7 +68,13 @@ def response(*stories: Story, status: str = "completed") -> Response:
                     ],
                     "sources": [
                         {"type": "url", "url": url}
-                        for url in [LAUNCH, TOPIC, LEADERBOARD, EXTERNAL]
+                        for url in [
+                            LAUNCH,
+                            TOPIC,
+                            LEADERBOARD,
+                            EXTERNAL,
+                            *(s.launch_url for s in stories),
+                        ]
                     ],
                 },
             },
@@ -160,184 +168,242 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(saved.launch_url, LAUNCH)
 
 
-class RequestTests(unittest.TestCase):
+def sdk_response(
+    client,
+    *stories: Story,
+    status: str = "completed",
+    missing_terminal=False,
+    final_response: Response | None = None,
+):
+    """An offline Responses stream with tool traffic followed by two output deltas."""
+    events = [
+        SimpleNamespace(type="response.web_search_call.searching"),
+        SimpleNamespace(type="response.output_text.delta", delta=""),
+        SimpleNamespace(type="response.output_text.delta", delta="{"),
+        SimpleNamespace(type="response.output_text.delta", delta="}"),
+    ]
+    if not missing_terminal:
+        events.append(
+            SimpleNamespace(
+                type=f"response.{status}",
+                response=final_response or response(*stories, status=status),
+            )
+        )
+    stream = MagicMock()
+    stream.response.headers = {"x-request-id": "req_test"}
+    stream.__iter__.return_value = events
+    stream.__enter__.return_value = stream
+    client.responses.create.return_value = stream
+
+
+class FeedRunTests(unittest.TestCase):
     def setUp(self):
         directory = self.enterContext(tempfile.TemporaryDirectory())
         self.path = Path(directory) / "test.sqlite3"
         self.store = Store(self.path)
-        self.client = Mock()
-        self.client.responses.create.return_value = response(story())
+        self.sdk = Mock()
+        sdk_response(self.sdk, story())
 
-    def run_once(self, *, force=False, budget=BUDGET):
-        return run_once(self.client, self.store, day=DAY, days=3, budget_usd=budget, force=force)
+    def run_feed(self, *, day=DAY, force=False, budget=BUDGET):
+        return run_once(self.sdk, self.store, day=day, days=3, budget_usd=budget, force=force)
 
-    def test_one_response_uses_explicit_model_and_domain_and_publishes(self):
-        result = self.run_once()
+    def test_stream_tracks_text_timing_tool_trace_and_daily_idempotency(self):
+        with patch("ai_buzz_radar.agent.monotonic", side_effect=[100, 100.2, 100.4, 100.5]):
+            report = self.run_feed()
+        self.assertEqual(report.stories, [story()])
+        self.assertEqual(self.run_feed(), report)
+        self.sdk.responses.create.assert_called_once()
+        request = self.sdk.responses.create.call_args.kwargs
+        self.assertEqual(request["model"], "gpt-6.2-sol")
+        self.assertEqual(request["reasoning"], {"effort": "high"})
+        self.assertEqual(request["tools"][0]["filters"], {"allowed_domains": ["producthunt.com"]})
+        self.assertTrue(request["stream"])
+        self.assertFalse(request["store"])
+        self.assertEqual(request["max_tool_calls"], 4)
+        trace = self.store.feed_run(DAY)
+        self.assertEqual(trace.result, report)
+        self.assertEqual(trace.input, request)
+        self.assertEqual(trace.http_request_id, "req_test")
+        self.assertEqual(trace.response["id"], "resp_1")
+        self.assertEqual(trace.opened_pages, [LAUNCH])
+        self.assertEqual(len(trace.search_queries), 2)
+        attempt = self.store.get_attempt(report.attempt_id)
+        self.assertEqual(attempt.duration_seconds, 0.5)
+        self.assertEqual(attempt.ttft_ms, 200)
+        self.assertEqual(attempt.tpot_ms, round(200 / 399, 3))
+        self.assertEqual(attempt.usage.estimated_cost_usd, Decimal("0.0599"))
+
+    def test_backfill_is_sorted_by_launch_date_and_alternate_urls_are_deduplicated(self):
+        self.run_feed()
+        today = DAY + timedelta(days=1)
+        newer = story(
+            "https://www.producthunt.com/posts/latest", published_on=today, title="当天发布"
+        )
+        backfill = story(
+            "https://www.producthunt.com/posts/missed",
+            published_on=DAY - timedelta(days=1),
+            title="回补发布",
+        )
+        alternate = story("https://www.producthunt.com/products/example")
+        sdk_response(self.sdk, alternate, backfill, newer)
+        report = self.run_feed(day=today)
+        self.assertEqual(report.duplicate_stories, 1)
+        self.assertEqual(
+            [item.story.title for item in self.store.feed()],
+            [
+                "当天发布",
+                "模型上线",
+                "回补发布",
+            ],
+        )
+        self.assertEqual(len(report.stories), 2)
+
+    def test_rolling_product_page_can_document_a_distinct_later_launch(self):
+        base = "https://www.producthunt.com/products/rolling-product"
+        first = story(base, title="首发")
+        later = story(base, title="第二次发布", published_on=DAY + timedelta(days=1))
+        sdk_response(self.sdk, first)
+        self.run_feed()
+        sdk_response(self.sdk, later)
+        self.run_feed(day=later.published_on)
+        self.assertEqual([item.story for item in self.store.feed()], [later, first])
+
+    def test_incomplete_response_preserves_feed_and_usage(self):
+        self.run_feed()
+        sdk_response(self.sdk, status="incomplete")
+        with self.assertRaisesRegex(RuntimeError, "incomplete"):
+            self.run_feed(force=True)
+        self.assertEqual([item.story for item in self.store.feed()], [story()])
+        usage = json.loads(usage_report(self.store, DAY))
+        self.assertEqual(Decimal(usage["estimated_cost_usd"]), Decimal("0.1198"))
+        self.assertEqual(usage["attempts"][-1]["response_status"], "incomplete")
+        self.assertIsNotNone(usage["attempts"][-1]["ttft_ms"])
+
+    def test_stream_without_terminal_event_keeps_the_reservation(self):
+        sdk_response(self.sdk, missing_terminal=True)
+        with self.assertRaisesRegex(RuntimeError, "without a terminal response"):
+            self.run_feed()
+        trace = self.store.feed_run(DAY)
+        self.assertEqual(trace.status, "usage_unavailable")
+        self.assertEqual(trace.http_request_id, "req_test")
+        attempt = self.store.get_attempt(trace.attempt_id)
+        self.assertEqual(attempt.consumed_usd, REQUEST_RESERVE_USD)
+        self.assertIsNotNone(attempt.ttft_ms)
+        self.assertIsNone(attempt.tpot_ms)
+
+    def test_compact_retry_rechecks_unverified_candidates_and_accepts_a_completed_open(self):
+        original = response(story())
+        original.output[0].action.sources = []
+        original.output[1].status = "failed"
+        sdk_response(self.sdk, final_response=original)
+        with self.assertRaisesRegex(ValueError, "no verifiable"):
+            self.run_feed()
+        self.assertEqual(self.store.feed(), [])
+        verified = response(story())
+        verified.output = verified.output[1:]
+        sdk_response(self.sdk, final_response=verified)
+        result = run_once(
+            self.sdk,
+            self.store,
+            day=DAY,
+            days=3,
+            budget_usd=BUDGET,
+            force=True,
+            limits=COMPACT_LIMITS,
+        )
+        payload = self.sdk.responses.create.call_args.kwargs
+        self.assertEqual(payload["max_tool_calls"], 2)
+        self.assertEqual(payload["max_output_tokens"], 1600)
+        self.assertEqual(
+            json.loads(payload["input"][1]["content"])["unverified_retry_urls"], [LAUNCH]
+        )
         self.assertEqual(result.stories, [story()])
-        self.assertEqual(self.store.get(), result)
-        trace = self.store.get_request(result.request_id)
-        self.assertIsNone(trace.user_id)
-        self.client.responses.create.assert_called_once()
-        payload = self.client.responses.create.call_args.kwargs
-        self.assertEqual(payload["model"], "gpt-6.2-sol")
-        self.assertEqual(payload["reasoning"], {"effort": "high"})
-        self.assertEqual(payload["tools"][0]["filters"], {"allowed_domains": ["producthunt.com"]})
-        self.assertEqual(payload["input"][0]["role"], "developer")
-        self.assertEqual(payload["max_tool_calls"], 6)
-        self.assertEqual(payload["max_output_tokens"], 6500)
-        self.assertFalse(payload["store"])
-        self.assertEqual(self.run_once(), result)
-        self.client.responses.create.assert_called_once()
+
+    def test_daily_worker_only_runs_when_due_and_keeps_budget_blocked_records(self):
+        self.assertIsNone(due_day(self.store, STARTED, 21))
+        evening = STARTED.replace(hour=21)
+        self.assertEqual(due_day(self.store, evening, 21), DAY)
+        with self.assertRaises(BudgetExceeded):
+            self.run_feed(budget=Decimal("0.48"))
+        self.assertEqual(self.store.feed_run(DAY).status, "budget_blocked")
+        self.assertEqual(self.store.attempts(), [])
+        self.assertIsNone(due_day(self.store, evening, 21))
+        self.sdk.responses.create.assert_not_called()
+
+    def test_run_lock_excludes_another_writer(self):
+        other = Store(self.path)
+        with self.store.run_lock(), self.assertRaises(RunInProgress), other.run_lock():
+            self.fail("An existing run must hold the writer lock")
 
     def test_cost_breakdown_and_no_double_counting(self):
         usage = Usage.from_response(response())
-        self.assertEqual(usage.input_tokens, 12000)
         self.assertEqual(usage.uncached_input_tokens, 1000)
         self.assertEqual(usage.cache_read_tokens, 4000)
         self.assertEqual(usage.cache_write_tokens, 7000)
-        self.assertEqual(usage.output_tokens, 1000)
-        self.assertEqual(usage.reasoning_tokens, 600)
         self.assertEqual(usage.estimated_cost_usd, Decimal("0.0599"))
 
-    def test_incomplete_response_keeps_accounting_and_last_published_brief(self):
-        first = self.run_once()
-        self.client.responses.create.return_value = response(status="incomplete")
-        with self.assertRaisesRegex(RuntimeError, "incomplete"):
-            self.run_once(force=True)
-        self.assertEqual(self.store.get(), first)
-        report = json.loads(usage_report(self.store, DAY))
-        self.assertEqual(Decimal(report["estimated_cost_usd"]), Decimal("0.1198"))
-        self.assertEqual(report["attempts"][-1]["status"], "brief_failed")
-        self.assertEqual(report["attempts"][-1]["response_status"], "incomplete")
 
-    def test_research_with_no_valid_evidence_is_charged_and_not_published(self):
-        self.client.responses.create.return_value = response(story(LEADERBOARD))
-        with self.assertRaisesRegex(ValueError, "failed date or evidence"):
-            self.run_once()
-        self.assertIsNone(self.store.get())
-        ((_, attempt),) = self.store.attempts()
-        self.assertEqual(attempt.status, "brief_failed")
-        self.assertEqual(attempt.usage.estimated_cost_usd, Decimal("0.0599"))
-
-    def test_budget_denies_request_when_pending_attempt_already_reserved(self):
-        self.store.reserve(Attempt(day=DAY, started_at=STARTED), BUDGET)
-        with self.assertRaises(BudgetExceeded):
-            self.run_once()
-        self.client.responses.create.assert_not_called()
-        report = json.loads(usage_report(self.store, None))
-        self.assertEqual(Decimal(report["reserved_for_unknown_usage_usd"]), REQUEST_RESERVE_USD)
-
-    def test_run_lock_excludes_another_writer(self):
-        other_process = Store(self.path)
-        with self.store.run_lock(), self.assertRaises(RunInProgress), other_process.run_lock():
-            self.fail("An existing run must hold the writer lock")
-        with other_process.run_lock():
-            self.assertIsNone(other_process.get(DAY))
-
-    def test_site_serves_saved_brief_and_escapes_headline(self):
-        web = create_app(self.path).test_client()
-        self.assertIn("首期简报尚未生成", web.get("/").get_data(as_text=True))
-        self.client.responses.create.return_value = response(story(title="<script>x()</script>"))
-        self.run_once()
-        page = web.get("/")
-        html = page.get_data(as_text=True)
-        self.assertIn("&lt;script&gt;", html)
-        self.assertNotIn("<script>", html)
-        self.assertIn(LAUNCH, html)
-        self.assertIn("frame-ancestors 'none'", page.headers["Content-Security-Policy"])
-        self.assertEqual(web.get("/healthz").json, {"status": "ok"})
-        self.assertEqual(web.get(f"/briefs/{DAY}").status_code, 200)
-        self.assertEqual(web.get("/briefs/incorrect").status_code, 404)
-        self.assertEqual(web.post("/").status_code, 405)
-
-
-class PersonalResearchTests(unittest.TestCase):
+class FeedWebTests(unittest.TestCase):
     def setUp(self):
         directory = self.enterContext(tempfile.TemporaryDirectory())
-        self.path = Path(directory) / "test.sqlite3"
+        self.path = Path(directory) / "legacy.sqlite3"
+        with sqlite3.connect(self.path) as db:
+            db.execute("CREATE TABLE product_hunt_briefs(day TEXT PRIMARY KEY, payload TEXT)")
+            db.execute(
+                "INSERT INTO product_hunt_briefs VALUES (?, ?)",
+                (
+                    DAY.isoformat(),
+                    brief(story(title="<script>unsafe()</script>")).model_dump_json(),
+                ),
+            )
+        self.app = create_app(self.path)
         self.store = Store(self.path)
-        self.web = create_app(self.path)
-        self.web.config["RADAR_REQUESTS_ENABLED"] = True
-        self.sdk = Mock()
-        self.sdk.responses.create.return_value = response(story())
-        opener = self.enterContext(patch("ai_buzz_radar.web.open_client"))
-        opener.return_value.__enter__.return_value = self.sdk
-        self.owner = self.web.test_client()
 
-    def form(self, window_start="2026-11-20", topic="MCP"):
-        page = self.owner.get("/research")
-        html = page.get_data(as_text=True)
-        return {
-            **dict(re.findall(r'<input type="hidden" name="([^"]+)" value="([^"]+)"', html)),
-            "window_start": window_start,
-            "window_end": DAY.isoformat(),
-            "topic": topic,
-        }
+    def test_home_migrates_existing_briefs_and_removes_old_web_routes(self):
+        browser = self.app.test_client()
+        html = browser.get("/").get_data(as_text=True)
+        self.assertEqual(len(self.store.feed()), 1)
+        self.assertIn("AI 产品动态", html)
+        self.assertIn("&lt;script&gt;", html)
+        self.assertNotIn("<script>", html)
+        self.assertEqual(browser.get("/healthz").json, {"status": "ok"})
+        self.assertEqual(browser.get("/research").status_code, 404)
+        self.assertEqual(browser.get(f"/briefs/{DAY}").status_code, 404)
 
-    def test_same_day_topics_get_independent_records_and_keep_the_public_brief(self):
-        public = run_once(self.sdk, self.store, day=DAY, days=3, budget_usd=BUDGET)
-        first = self.form()
-        result = self.owner.post("/research", data=first)
-        self.assertEqual(result.status_code, 303)
-        duplicate = self.owner.post("/research", data=first)
-        self.assertEqual(duplicate.location, result.location)
-        second = self.form(window_start="2026-11-21", topic="AI video")
-        self.assertNotEqual(second["request_id"], first["request_id"])
-        self.assertEqual(self.owner.post("/research", data=second).status_code, 303)
-        self.assertEqual(self.sdk.responses.create.call_count, 3)
-        self.assertEqual(self.store.get(), public)
-
-        trace = self.owner.get(result.location + "/trace").json
-        self.assertEqual(trace["request_id"], first["request_id"])
-        self.assertEqual(trace["input"], self.sdk.responses.create.call_args_list[1].kwargs)
-        self.assertEqual(trace["selection"]["topic"], "MCP")
-        self.assertEqual(
-            trace["search_queries"],
-            [
-                "site:producthunt.com AI developer tools",
-                "site:producthunt.com AI MCP",
-            ],
-        )
-        self.assertEqual(trace["opened_pages"], [LAUNCH])
-        self.assertEqual(trace["response"]["id"], "resp_1")
-        self.assertIsNone(trace["http_request_id"])
-        self.assertEqual(trace["result"]["stories"][0]["launch_url"], LAUNCH)
-        self.assertEqual(
-            Decimal(trace["attempt"]["usage"]["estimated_cost_usd"]), Decimal("0.0599")
-        )
-        personal_two = self.store.get_request(second["request_id"])
-        self.assertEqual(personal_two.user_id, trace["user_id"])
-        self.assertEqual(personal_two.selection.window_start, date(2026, 11, 21))
-        self.assertEqual(personal_two.selection.topic, "AI video")
-
-    def test_different_browser_cannot_load_another_browsers_history_or_trace(self):
-        fields = self.form()
-        created = self.owner.post("/research", data=fields)
-        guest = self.web.test_client()
-        history = guest.get("/research")
-        self.assertIn("HttpOnly", history.headers["Set-Cookie"])
-        self.assertIn("SameSite=Lax", history.headers["Set-Cookie"])
-        self.assertNotIn(fields["request_id"], history.get_data(as_text=True))
-        self.assertEqual(guest.get(created.location).status_code, 404)
-        self.assertEqual(guest.get(created.location + "/trace").status_code, 404)
-        self.assertEqual(guest.post("/research", data=fields).status_code, 403)
-        self.sdk.responses.create.assert_called_once()
-        self.assertEqual(
-            self.owner.get(created.location).headers["Cache-Control"], "private, no-store"
-        )
-
-    def test_invalid_range_and_budget_denial_do_not_send_an_api_request(self):
-        invalid = self.owner.post("/research", data=self.form(window_start="2026-11-23"))
-        self.assertEqual(invalid.status_code, 400)
-        self.store.reserve(Attempt(day=DAY, started_at=STARTED), BUDGET)
-        fields = self.form()
-        blocked = self.owner.post("/research", data=fields)
-        self.assertEqual(blocked.status_code, 303)
-        trace = self.owner.get(blocked.location + "/trace").json
-        self.assertEqual(trace["status"], "budget_blocked")
-        self.assertIsNone(trace["attempt"])
-        self.assertIsNone(trace["response"])
-        self.sdk.responses.create.assert_not_called()
+    def test_cookie_attributes_site_views_and_original_clicks_are_correlated(self):
+        browser = self.app.test_client()
+        page = browser.get("/")
+        self.assertIn("HttpOnly", page.headers["Set-Cookie"])
+        self.assertIn("SameSite=Lax", page.headers["Set-Cookie"])
+        token = browser.get_cookie(COOKIE_NAME).value
+        csrf = re.search(r'data-view-token="([^"]+)"', page.get_data(as_text=True))[1]
+        item = self.store.feed()[0]
+        url = f"/events/view/{item.id}"
+        self.assertEqual(self.app.test_client().post(url, data={"csrf": csrf}).status_code, 403)
+        self.assertEqual(browser.post(url, data={"csrf": csrf}).status_code, 204)
+        self.assertEqual(browser.get(f"/out/{item.id}").location, LAUNCH)
+        browser.get(f"/out/{item.id}", headers={"Sec-Purpose": "prefetch"})
+        browser.get("/")
+        second = self.app.test_client()
+        second.get("/")
+        self.assertNotEqual(second.get_cookie(COOKIE_NAME).value, token)
+        self.store.record_event(browser_id(token), "feedback", STARTED, item.id, value="hide")
+        with sqlite3.connect(self.path) as db:
+            events = db.execute(
+                "SELECT kind, item_id, value FROM visitor_events WHERE user_id = ? ORDER BY id",
+                (browser_id(token),),
+            ).fetchall()
+            self.assertEqual(
+                events,
+                [
+                    ("feed_view", None, None),
+                    ("item_view", item.id, None),
+                    ("source_click", item.id, None),
+                    ("feed_view", None, None),
+                    ("feedback", item.id, "hide"),
+                ],
+            )
+            self.assertEqual(db.execute("SELECT count(*) FROM visitors").fetchone()[0], 2)
 
 
 if __name__ == "__main__":

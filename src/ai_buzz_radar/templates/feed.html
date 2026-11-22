@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Product Hunt 上值得关注的 AI 产品和开发工具。">
+  <title>AI Buzz Radar</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='radar.css') }}">
+  <script src="{{ url_for('static', filename='feed.js') }}" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">跳到正文</a>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="{{ url_for('feed') }}"><span aria-hidden="true"></span>AI Buzz Radar</a>
+    </div>
+  </header>
+  <main class="container" id="main" data-view-token="{{ csrf }}">
+    <div class="intro">
+      <h1>AI 产品动态</h1>
+      <p>来自 Product Hunt 的新产品和开发工具。</p>
+    </div>
+    {% for item in items %}
+    {% set story = item.story %}
+    <article class="story" data-view-url="{{ url_for('view_item', item_id=item.id) }}">
+      <time datetime="{{ story.published_on }}">{{ story.published_on }}</time>
+      <h2>{{ story.title }}</h2>
+      <p>{{ story.summary }}</p>
+      <p><strong>值得关注</strong> {{ story.why_it_matters }}</p>
+      {% if story.caveat %}
+      <p class="caveat">{{ story.caveat }}</p>
+      {% endif %}
+      <a class="source" href="{{ url_for('open_source', item_id=item.id) }}">Product Hunt 原文 <span aria-hidden="true">↗</span></a>
+    </article>
+    {% else %}
+    <p class="empty">首批动态待更新。</p>
+    {% endfor %}
+  </main>
+</body>
+</html>

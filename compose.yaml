@@ -3,6 +3,13 @@ services:
     build: .
     ports:
       - "127.0.0.1:8000:8000"
+    volumes:
+      - radar-data:/app/data
+    restart: unless-stopped
+  worker:
+    build: .
+    profiles: ["daily"]
+    command: ["radar", "daily"]
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       RADAR_BUDGET_USD: ${RADAR_BUDGET_USD:-1.00}
