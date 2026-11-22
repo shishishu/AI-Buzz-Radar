@@ -17,24 +17,31 @@
   </header>
   <main class="container" id="main" data-view-token="{{ csrf }}">
     <div class="intro">
-      <h1>AI 产品动态</h1>
-      <p>来自 Product Hunt 的新产品和开发工具。</p>
-    </div>
-    {% for item in items %}
-    {% set story = item.story %}
-    <article class="story" data-view-url="{{ url_for('view_item', item_id=item.id) }}">
-      <time datetime="{{ story.published_on }}">{{ story.published_on }}</time>
-      <h2>{{ story.title }}</h2>
-      <p>{{ story.summary }}</p>
-      <p><strong>值得关注</strong> {{ story.why_it_matters }}</p>
-      {% if story.caveat %}
-      <p class="caveat">{{ story.caveat }}</p>
+      <h1>今日 Top</h1>
+      {% if edition %}
+      <p>{% if edition.day < today %}上期 · {% endif %}<time datetime="{{ edition.day }}">{{ edition.day.month }} 月 {{ edition.day.day }} 日</time> · Product Hunt 日榜快照</p>
       {% endif %}
-      <a class="source" href="{{ url_for('open_source', item_id=item.id) }}">Product Hunt 原文 <span aria-hidden="true">↗</span></a>
-    </article>
-    {% else %}
-    <p class="empty">首批动态待更新。</p>
+    </div>
+    {% if edition %}
+    <ol class="top-list" aria-label="Product Hunt AI 产品精选">
+    {% for item in edition.items %}
+    {% set story = item.story %}
+    <li class="story" data-view-url="{{ url_for('view_item', item_id=item.id) }}">
+      <span class="rank" aria-label="Product Hunt 日榜第 {{ story.source_rank }} 名">#{{ story.source_rank }}</span>
+      <div>
+        <h2>{{ story.title }}</h2>
+        {% if story.published_on != edition.day %}
+        <time class="backfill" datetime="{{ story.published_on }}">回补 · {{ story.published_on.month }} 月 {{ story.published_on.day }} 日</time>
+        {% endif %}
+        <p>{{ story.summary }}</p>
+      </div>
+      <a class="source" href="{{ url_for('open_source', item_id=item.id) }}" aria-label="{{ story.title }} 的 Product Hunt 原文">原文 <span aria-hidden="true">↗</span></a>
+    </li>
     {% endfor %}
+    </ol>
+    {% else %}
+    <p class="empty">首期 Top 待更新。</p>
+    {% endif %}
   </main>
 </body>
 </html>

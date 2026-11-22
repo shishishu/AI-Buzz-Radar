@@ -1,12 +1,23 @@
 import re
 from datetime import date, datetime, timedelta
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import parse_qs, urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 PRODUCT_HUNT = "producthunt.com"
 DATABASE_PATH = "data/product-hunt.sqlite3"
+MAX_SOURCE_RANK = 20
+UseCase = Literal[
+    "sales_marketing",
+    "content_creation",
+    "knowledge_research",
+    "developer_tools",
+    "customer_support",
+    "productivity",
+    "infrastructure",
+    "other",
+]
 SLUG = r"[a-z0-9]+(?:-[a-z0-9]+)*"
 LAUNCH_PATH = re.compile(rf"/(?:(?:posts|products)/{SLUG}|products/{SLUG}/launches/{SLUG})")
 PRODUCT_HUNT_LINK = r"\[(?:www\.)?producthunt\.com\]\(https?://[^\s)]+\)"
@@ -42,6 +53,26 @@ def launch_slug(key: str) -> str:
     return selector or path.rsplit("/", 1)[-1]
 
 
+def leaderboard_url(day: date) -> str:
+    return f"https://www.{PRODUCT_HUNT}/leaderboard/daily/{day.year}/{day.month}/{day.day}"
+
+
+def observed_leaderboard(url: str, day: date) -> bool:
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return False
+    return (
+        parts.scheme == "https"
+        and parts.netloc in {PRODUCT_HUNT, f"www.{PRODUCT_HUNT}"}
+        and parts.path.rstrip("/")
+        in {
+            urlsplit(leaderboard_url(day)).path,
+            f"/leaderboard/daily/{day:%Y/%m/%d}",
+        }
+    )
+
+
 class Record(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -50,9 +81,11 @@ class Story(Record):
     title: str
     published_on: date
     summary: str
-    why_it_matters: str
-    caveat: str | None
+    why_it_matters: str | None = None
+    caveat: str | None = None
     launch_url: str
+    source_rank: int | None = Field(default=None, ge=1, le=MAX_SOURCE_RANK)
+    use_case: UseCase | None = None
 
     @field_validator("title", "summary", "why_it_matters", "caveat")
     @classmethod
@@ -76,6 +109,91 @@ class Story(Record):
 class FeedItem(Record):
     id: int
     story: Story
+
+
+class TopEdition(Record):
+    day: date
+    items: list[FeedItem] = Field(min_length=3, max_length=5)
+
+
+def select_top(items: list[FeedItem], *, day: date, window_start: date) -> TopEdition | None:
+    candidates = sorted(
+        (
+            item
+            for item in items
+            if item.story.source_rank is not None and window_start <= item.story.published_on <= day
+        ),
+        key=lambda item: (-item.story.published_on.toordinal(), item.story.source_rank),
+    )
+    unique = []
+    seen_items = set()
+    seen_ranks = set()
+    seen_launches = set()
+    for item in candidates:
+        rank_on_day = (item.story.published_on, item.story.source_rank)
+        key = launch_key(item.story.launch_url)
+        if (
+            key is None
+            or key in seen_launches
+            or item.id in seen_items
+            or rank_on_day in seen_ranks
+        ):
+            continue
+        seen_launches.add(key)
+        seen_items.add(item.id)
+        seen_ranks.add(rank_on_day)
+        unique.append(item)
+
+    today = [item for item in unique if item.story.published_on == day]
+    selected = today[:3]
+    use_cases = {item.story.use_case for item in selected}
+    for item in today[3:]:
+        use_case = item.story.use_case
+        if use_case and use_case != "other" and use_case not in use_cases:
+            selected.append(item)
+            use_cases.add(use_case)
+        if len(selected) == 5:
+            break
+    if len(selected) < 3:
+        backfill = [item for item in unique if item.story.published_on < day]
+        selected.extend(backfill[: 3 - len(selected)])
+    return TopEdition(day=day, items=selected) if len(selected) >= 3 else None
+
+
+class RankedLaunch(Record):
+    title: str
+    published_on: date
+    launch_url: str
+    source_rank: int
+    use_case: UseCase
+    summary: str
+
+
+class RankedResearch(Record):
+    stories: list[RankedLaunch]
+
+
+class SnapshotEntry(Record):
+    title: str = Field(min_length=1, max_length=120)
+    source_rank: int = Field(ge=1, le=MAX_SOURCE_RANK)
+    launch_url: str
+    evidence: str = Field(min_length=1, max_length=400)
+
+
+class LeaderboardSnapshot(Record):
+    day: date
+    source_url: str
+    entries: list[SnapshotEntry] = Field(min_length=1, max_length=MAX_SOURCE_RANK)
+
+    @model_validator(mode="after")
+    def validate_source(self) -> "LeaderboardSnapshot":
+        if not observed_leaderboard(self.source_url, self.day):
+            raise ValueError("Snapshot requires the official Product Hunt daily leaderboard URL")
+        keys = {launch_key(entry.launch_url) for entry in self.entries}
+        ranks = {entry.source_rank for entry in self.entries}
+        if None in keys or len(keys) != len(self.entries) or len(ranks) != len(self.entries):
+            raise ValueError("Snapshot must contain distinct Product Hunt launch URLs and ranks")
+        return self
 
 
 class Research(Record):
@@ -161,6 +279,7 @@ def build_brief(
     previously_published: set[str],
     attempt_id: int,
     require_launch_pages: bool = True,
+    max_stories: int = 5,
 ) -> Brief:
     if not observed and (require_launch_pages or research.stories):
         raise ValueError("Search returned no verifiable Product Hunt launch pages")
@@ -170,7 +289,7 @@ def build_brief(
     seen = set(previously_published)
     for story in research.stories:
         key = launch_key(story.launch_url)
-        fields = (story.title, story.summary, story.why_it_matters)
+        fields = (story.title, story.summary)
         if (
             key is None
             or key not in observed
@@ -185,7 +304,7 @@ def build_brief(
             continue
         stories.append(story.model_copy(update={"launch_url": f"https://www.{PRODUCT_HUNT}{key}"}))
         seen.add(identity)
-        if len(stories) == 5:
+        if len(stories) == max_stories:
             break
 
     if research.stories and not stories and not duplicates:

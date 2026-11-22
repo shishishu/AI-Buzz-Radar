@@ -29,14 +29,16 @@ class RequestLimits:
     def reserve_usd(self) -> Decimal:
         # Allow input headroom over the documented 128k web-search context and
         # reserve for each requested web action plus one.
+        web_cost = (self.web_calls + 1) * WEB_SEARCH_ACTION if self.web_calls else Decimal("0")
         return (
             self.reservation_input_tokens * STANDARD_CACHE_WRITE_30M
             + self.output_tokens * STANDARD_OUTPUT
-        ) / MILLION + (self.web_calls + 1) * WEB_SEARCH_ACTION
+        ) / MILLION + web_cost
 
 
 DEFAULT_LIMITS = RequestLimits(web_calls=4, output_tokens=6500, reservation_input_tokens=150_000)
 COMPACT_LIMITS = RequestLimits(web_calls=2, output_tokens=1600, reservation_input_tokens=129_000)
+SNAPSHOT_LIMITS = RequestLimits(web_calls=0, output_tokens=2600, reservation_input_tokens=25_000)
 REQUEST_RESERVE_USD = DEFAULT_LIMITS.reserve_usd
 
 

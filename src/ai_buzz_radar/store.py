@@ -5,7 +5,15 @@ from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 
-from ai_buzz_radar.models import Brief, FeedItem, RequestTrace, Story, launch_key
+from ai_buzz_radar.models import (
+    Brief,
+    FeedItem,
+    RequestTrace,
+    Story,
+    TopEdition,
+    launch_key,
+    select_top,
+)
 from ai_buzz_radar.usage import Attempt
 
 
@@ -52,6 +60,10 @@ class Store:
                     UNIQUE(published_on, title_key)
                 );
                 CREATE INDEX IF NOT EXISTS feed_items_date ON feed_items(published_on DESC, id);
+                CREATE TABLE IF NOT EXISTS top_editions (
+                    day TEXT PRIMARY KEY,
+                    payload TEXT NOT NULL
+                );
                 CREATE TABLE IF NOT EXISTS visitors (
                     user_id TEXT PRIMARY KEY,
                     first_seen_at TEXT NOT NULL,
@@ -124,6 +136,14 @@ class Store:
             row = db.execute("SELECT payload FROM feed_items WHERE id = ?", (item_id,)).fetchone()
         return Story.model_validate_json(row[0]) if row else None
 
+    def top_edition(self, day: date) -> TopEdition | None:
+        with closing(self.connect()) as db:
+            row = db.execute(
+                "SELECT payload FROM top_editions WHERE day <= ? ORDER BY day DESC LIMIT 1",
+                (day.isoformat(),),
+            ).fetchone()
+        return TopEdition.model_validate_json(row[0]) if row else None
+
     def feed_run(self, day: date | None = None) -> RequestTrace | None:
         with closing(self.connect()) as db:
             query = """SELECT research_requests.payload FROM feed_runs
@@ -159,13 +179,52 @@ class Store:
 
     def finish(self, brief: Brief, attempt: Attempt, trace: RequestTrace) -> None:
         with closing(self.connect()) as db, db:
-            new_stories = [story for story in brief.stories if self.insert_story(db, story)]
-            brief.duplicate_stories += len(brief.stories) - len(new_stories)
-            brief.stories = new_stories
+            sources = []
+            for story in brief.stories:
+                self.insert_story(db, story)
+                item_id, saved_date = db.execute(
+                    """SELECT id, published_on FROM feed_items
+                       WHERE identity = ? OR (published_on = ? AND title_key = ?)
+                       ORDER BY (identity = ?) DESC LIMIT 1""",
+                    (
+                        story.identity,
+                        story.published_on.isoformat(),
+                        story.title_key,
+                        story.identity,
+                    ),
+                ).fetchone()
+                if saved_date != story.published_on.isoformat():
+                    brief.duplicate_stories += 1
+                    continue
+                db.execute(
+                    "UPDATE feed_items SET payload = ? WHERE id = ?",
+                    (story.model_dump_json(), item_id),
+                )
+                sources.append(FeedItem(id=item_id, story=story))
+
+            fresh_days = {item.story.published_on for item in sources}
+            archived = db.execute(
+                """SELECT id, payload FROM feed_items WHERE published_on >= ? AND published_on < ?
+                   ORDER BY published_on DESC, id""",
+                (brief.window_start.isoformat(), brief.day.isoformat()),
+            )
+            for item_id, payload in archived:
+                story = Story.model_validate_json(payload)
+                if story.source_rank is not None and story.published_on not in fresh_days:
+                    sources.append(FeedItem(id=item_id, story=story))
+
+            edition = select_top(sources, day=brief.day, window_start=brief.window_start)
+            if edition is not None:
+                db.execute(
+                    """INSERT INTO top_editions(day, payload) VALUES (?, ?)
+                       ON CONFLICT(day) DO UPDATE SET payload = excluded.payload""",
+                    (brief.day.isoformat(), edition.model_dump_json()),
+                )
+            brief.stories = [item.story for item in edition.items] if edition else []
             trace.result = brief
             trace.status = "completed"
-            attempt.status = "published"
-            attempt.published_stories = len(new_stories)
+            attempt.status = "published" if edition else "insufficient_items"
+            attempt.published_stories = len(brief.stories)
             self._update_attempt(db, brief.attempt_id, attempt, trace)
 
     @contextmanager

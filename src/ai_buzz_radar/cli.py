@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from openai import APIError, OpenAI
 
 from ai_buzz_radar.agent import TIMEZONE, describe_error, open_client, run_research
-from ai_buzz_radar.models import DATABASE_PATH, Brief, Selection, start_date
+from ai_buzz_radar.models import DATABASE_PATH, Brief, LeaderboardSnapshot, Selection, start_date
 from ai_buzz_radar.store import Store
 from ai_buzz_radar.usage import (
     COMPACT_LIMITS,
@@ -34,6 +34,7 @@ def run_once(
     budget_usd: Decimal,
     force: bool = False,
     limits: RequestLimits = DEFAULT_LIMITS,
+    snapshot: LeaderboardSnapshot | None = None,
 ) -> Brief:
     with store.run_lock():
         existing = store.feed_run(day)
@@ -51,6 +52,7 @@ def run_once(
             selection=Selection(window_start=start_date(day, days), window_end=day),
             budget_usd=budget_usd,
             limits=limits,
+            snapshot=snapshot,
         )
 
 
@@ -123,6 +125,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     run = commands.add_parser("run", parents=[generation], help="Refresh the feed once")
     run.add_argument("--day", type=date.fromisoformat)
+    run.add_argument("--snapshot", type=Path, help="Use a verified Product Hunt leaderboard JSON")
     run.add_argument(
         "--force", action="store_true", help="Run an additional update for the same date"
     )
@@ -163,8 +166,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    if not 1 <= args.days <= 7:
-        parser.error("--days must be 1–7")
+    if not 1 <= args.days <= 4:
+        parser.error("--days must be 1–4")
     if args.command == "run":
         today = datetime.now(TIMEZONE).date()
         day = args.day or today
@@ -200,9 +203,14 @@ def main(argv: list[str] | None = None) -> int:
                 budget_usd=args.budget_usd,
                 force=args.force,
                 limits=limits,
+                snapshot=LeaderboardSnapshot.model_validate_json(
+                    args.snapshot.read_text(encoding="utf-8")
+                )
+                if args.snapshot
+                else None,
             )
         print(f"{brief.day} · {len(brief.stories)} stories · request {brief.request_id}")
-    except (APIError, RuntimeError, ValueError) as error:
+    except (APIError, OSError, RuntimeError, ValueError) as error:
         logger.error("%s. See radar usage for request accounting.", describe_error(error))
         return 1
     except KeyboardInterrupt:

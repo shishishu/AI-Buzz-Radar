@@ -21,21 +21,24 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .brand span { width: 18px; height: 18px; border: 1px solid var(--accent); border-radius: 50%; display: grid; place-items: center; }
 .brand span::after { content: ""; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; }
 main { padding-bottom: 56px; }
-.intro { padding: 52px 0 30px; border-bottom: 1px solid var(--line); }
+.intro { padding: 40px 0 22px; }
 .intro h1 { margin: 0; font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.14; letter-spacing: -.06em; }
 .intro p { margin: 12px 0 0; color: var(--muted); }
-.story { padding: 25px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-.story time { color: var(--muted); font-size: .82rem; font-variant-numeric: tabular-nums; }
-.story h2 { margin: 7px 0 10px; font-size: clamp(1.26rem, 4vw, 1.55rem); line-height: 1.38; }
-.story p { margin: 7px 0; line-height: 1.7; }
-.story strong { margin-right: .3em; }
-.story .caveat { color: var(--muted); font-size: .9rem; }
-.source { display: inline-block; margin-top: 7px; font-size: .85rem; text-underline-offset: 3px; }
+.top-list { list-style: none; margin: 0; padding: 0; }
+.story { display: grid; grid-template-columns: 2.35em minmax(0, 1fr) auto; align-items: baseline; gap: 6px 12px; padding: 15px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.rank, .backfill { color: var(--muted); font-size: .81rem; font-variant-numeric: tabular-nums; }
+.story h2 { margin: 0 0 3px; font-size: 1.1rem; line-height: 1.4; }
+.story p { margin: 3px 0 0; line-height: 1.6; color: var(--muted); }
+.source { white-space: nowrap; font-size: .85rem; text-underline-offset: 3px; }
 .empty { color: var(--muted); padding-top: 12px; }
 .skip { position: absolute; top: 12px; left: -9999px; padding: 10px; background: var(--paper); }
 .skip:focus { left: 12px; }
 
 @media (max-width: 600px) {
-  .intro { padding: 34px 0 24px; }
-  .story { padding: 21px 0; }
+  .intro { padding: 31px 0 16px; }
+}
+
+@media (max-width: 390px) {
+  .story { grid-template-columns: 2em minmax(0, 1fr); }
+  .source { grid-column: 2; justify-self: start; }
 }

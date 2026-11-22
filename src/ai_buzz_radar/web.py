@@ -62,10 +62,16 @@ def create_app(database: Path | None = None) -> Flask:
     def feed():
         existing = browser_token()
         token = existing or secrets.token_urlsafe(32)
+        now = datetime.now(TIMEZONE)
         if request.method == "GET":
-            store.record_event(browser_id(token), "feed_view", datetime.now(TIMEZONE))
+            store.record_event(browser_id(token), "feed_view", now)
         response = make_response(
-            render_template("feed.html", items=store.feed(), csrf=view_token(token))
+            render_template(
+                "feed.html",
+                edition=store.top_edition(now.date()),
+                today=now.date(),
+                csrf=view_token(token),
+            )
         )
         if existing is None and request.method == "GET":
             set_browser_cookie(response, token)

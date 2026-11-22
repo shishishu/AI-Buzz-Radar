@@ -14,7 +14,20 @@ from pydantic import TypeAdapter
 
 from ai_buzz_radar.agent import TIMEZONE
 from ai_buzz_radar.cli import due_day, run_once, usage_report
-from ai_buzz_radar.models import Research, Story, build_brief, launch_key, launch_slug
+from ai_buzz_radar.models import (
+    FeedItem,
+    LeaderboardSnapshot,
+    RankedLaunch,
+    RankedResearch,
+    Research,
+    SnapshotEntry,
+    Story,
+    build_brief,
+    launch_key,
+    launch_slug,
+    leaderboard_url,
+    select_top,
+)
 from ai_buzz_radar.store import BudgetExceeded, RunInProgress, Store
 from ai_buzz_radar.usage import COMPACT_LIMITS, REQUEST_RESERVE_USD, Usage
 from ai_buzz_radar.web import COOKIE_NAME, browser_id, create_app
@@ -30,14 +43,21 @@ STARTED = datetime(2026, 11, 22, 10, tzinfo=TIMEZONE)
 BUDGET = Decimal("1")
 
 
-def story(url: str = LAUNCH, *, published_on: date = DAY, title: str = "模型上线") -> Story:
+def story(
+    url: str = LAUNCH,
+    *,
+    published_on: date = DAY,
+    title: str = "模型上线",
+    rank: int | None = 1,
+    use_case="developer_tools",
+) -> Story:
     return Story(
         title=title,
         published_on=published_on,
         summary="发布了面向开发者的本地 AI 工具。",
-        why_it_matters="开发者可以在本地运行。",
-        caveat=None,
         launch_url=url,
+        source_rank=rank,
+        use_case=use_case,
     )
 
 
@@ -54,6 +74,12 @@ def brief(*stories: Story, previously_published: set[str] | None = None):
 
 
 def response(*stories: Story, status: str = "completed") -> Response:
+    ranked = RankedResearch(
+        stories=[
+            RankedLaunch.model_validate(item.model_dump(include=set(RankedLaunch.model_fields)))
+            for item in stories
+        ]
+    )
     output = TypeAdapter(list[ResponseOutputItem]).validate_python(
         [
             {
@@ -74,6 +100,7 @@ def response(*stories: Story, status: str = "completed") -> Response:
                             LEADERBOARD,
                             EXTERNAL,
                             *(s.launch_url for s in stories),
+                            *(leaderboard_url(s.published_on) for s in stories),
                         ]
                     ],
                 },
@@ -92,7 +119,7 @@ def response(*stories: Story, status: str = "completed") -> Response:
                 "content": [
                     {
                         "type": "output_text",
-                        "text": Research(stories=list(stories)).model_dump_json(),
+                        "text": ranked.model_dump_json(),
                         "annotations": [],
                     }
                 ],
@@ -202,7 +229,12 @@ class FeedRunTests(unittest.TestCase):
         self.path = Path(directory) / "test.sqlite3"
         self.store = Store(self.path)
         self.sdk = Mock()
-        sdk_response(self.sdk, story())
+        self.baseline = [
+            story(),
+            story("https://www.producthunt.com/products/second", title="第二", rank=2),
+            story("https://www.producthunt.com/products/third", title="第三", rank=3),
+        ]
+        sdk_response(self.sdk, *self.baseline)
 
     def run_feed(self, *, day=DAY, force=False, budget=BUDGET):
         return run_once(self.sdk, self.store, day=day, days=3, budget_usd=budget, force=force)
@@ -210,7 +242,7 @@ class FeedRunTests(unittest.TestCase):
     def test_stream_tracks_text_timing_tool_trace_and_daily_idempotency(self):
         with patch("ai_buzz_radar.agent.monotonic", side_effect=[100, 100.2, 100.4, 100.5]):
             report = self.run_feed()
-        self.assertEqual(report.stories, [story()])
+        self.assertEqual(report.stories, self.baseline)
         self.assertEqual(self.run_feed(), report)
         self.sdk.responses.create.assert_called_once()
         request = self.sdk.responses.create.call_args.kwargs
@@ -234,6 +266,7 @@ class FeedRunTests(unittest.TestCase):
         self.assertEqual(attempt.usage.estimated_cost_usd, Decimal("0.0599"))
 
     def test_backfill_is_sorted_by_launch_date_and_alternate_urls_are_deduplicated(self):
+        sdk_response(self.sdk, story())
         self.run_feed()
         today = DAY + timedelta(days=1)
         newer = story(
@@ -247,7 +280,6 @@ class FeedRunTests(unittest.TestCase):
         alternate = story("https://www.producthunt.com/products/example")
         sdk_response(self.sdk, alternate, backfill, newer)
         report = self.run_feed(day=today)
-        self.assertEqual(report.duplicate_stories, 1)
         self.assertEqual(
             [item.story.title for item in self.store.feed()],
             [
@@ -256,7 +288,7 @@ class FeedRunTests(unittest.TestCase):
                 "回补发布",
             ],
         )
-        self.assertEqual(len(report.stories), 2)
+        self.assertEqual(len(report.stories), 3)
 
     def test_rolling_product_page_can_document_a_distinct_later_launch(self):
         base = "https://www.producthunt.com/products/rolling-product"
@@ -273,7 +305,7 @@ class FeedRunTests(unittest.TestCase):
         sdk_response(self.sdk, status="incomplete")
         with self.assertRaisesRegex(RuntimeError, "incomplete"):
             self.run_feed(force=True)
-        self.assertEqual([item.story for item in self.store.feed()], [story()])
+        self.assertEqual([item.story for item in self.store.feed()], self.baseline)
         usage = json.loads(usage_report(self.store, DAY))
         self.assertEqual(Decimal(usage["estimated_cost_usd"]), Decimal("0.1198"))
         self.assertEqual(usage["attempts"][-1]["response_status"], "incomplete")
@@ -291,16 +323,15 @@ class FeedRunTests(unittest.TestCase):
         self.assertIsNotNone(attempt.ttft_ms)
         self.assertIsNone(attempt.tpot_ms)
 
-    def test_compact_retry_rechecks_unverified_candidates_and_accepts_a_completed_open(self):
+    def test_compact_retry_rechecks_unverified_candidates_and_requires_daily_rank_source(self):
         original = response(story())
         original.output[0].action.sources = []
         original.output[1].status = "failed"
         sdk_response(self.sdk, final_response=original)
-        with self.assertRaisesRegex(ValueError, "no verifiable"):
+        with self.assertRaisesRegex(ValueError, "daily rank and launch-page"):
             self.run_feed()
         self.assertEqual(self.store.feed(), [])
         verified = response(story())
-        verified.output = verified.output[1:]
         sdk_response(self.sdk, final_response=verified)
         result = run_once(
             self.sdk,
@@ -317,7 +348,82 @@ class FeedRunTests(unittest.TestCase):
         self.assertEqual(
             json.loads(payload["input"][1]["content"])["unverified_retry_urls"], [LAUNCH]
         )
-        self.assertEqual(result.stories, [story()])
+        self.assertEqual(result.stories, [])
+        self.assertEqual([item.story for item in self.store.feed()], [story()])
+
+    def test_snapshot_uses_supplied_original_ranks_and_keeps_last_edition_if_short(self):
+        snapshot = LeaderboardSnapshot(
+            day=DAY,
+            source_url=LEADERBOARD,
+            entries=[
+                SnapshotEntry(
+                    title=item.title,
+                    source_rank=item.source_rank,
+                    launch_url=item.launch_url,
+                    evidence=item.summary,
+                )
+                for item in self.baseline
+            ],
+        )
+        good = response(*self.baseline)
+        good.output = good.output[2:]
+        sdk_response(self.sdk, final_response=good)
+        edition = run_once(
+            self.sdk, self.store, day=DAY, days=3, budget_usd=BUDGET, snapshot=snapshot
+        )
+        self.assertEqual(edition.stories, self.baseline)
+        payload = self.sdk.responses.create.call_args.kwargs
+        self.assertNotIn("tools", payload)
+        self.assertEqual(self.store.top_edition(DAY).day, DAY)
+
+        altered = self.baseline[0].model_copy(update={"source_rank": 19})
+        bad = response(altered)
+        bad.output = bad.output[2:]
+        sdk_response(self.sdk, final_response=bad)
+        with self.assertRaisesRegex(ValueError, "daily rank and launch-page"):
+            run_once(
+                self.sdk,
+                self.store,
+                day=DAY,
+                days=3,
+                budget_usd=BUDGET,
+                force=True,
+                snapshot=snapshot,
+            )
+        self.assertEqual(len(self.store.top_edition(DAY).items), 3)
+
+    def test_today_top_stops_at_three_without_distinct_use_cases_and_caps_at_five(self):
+        items = [
+            FeedItem(
+                id=rank,
+                story=story(
+                    f"https://www.producthunt.com/products/p-{rank}",
+                    title=f"发布{rank}",
+                    rank=rank,
+                ),
+            )
+            for rank in (1, 2, 5, 6, 7, 8, 9)
+        ]
+        result = select_top(items[::-1], day=DAY, window_start=WINDOW_START)
+        self.assertEqual([item.story.source_rank for item in result.items], [1, 2, 5])
+        for item, category in zip(
+            items[4:],
+            ("productivity", "sales_marketing", "content_creation"),
+            strict=True,
+        ):
+            item.story.use_case = category
+        result = select_top(items, day=DAY, window_start=WINDOW_START)
+        self.assertEqual([item.story.source_rank for item in result.items], [1, 2, 5, 7, 8])
+
+    def test_new_window_with_under_three_ranked_items_keeps_previous_edition(self):
+        self.run_feed()
+        old = self.store.top_edition(DAY)
+        today = DAY + timedelta(days=4)
+        sdk_response(self.sdk, story("https://www.producthunt.com/posts/new", published_on=today))
+        result = self.run_feed(day=today)
+        self.assertEqual(result.stories, [])
+        self.assertEqual(self.store.top_edition(today), old)
+        self.assertEqual(self.store.get_attempt(result.attempt_id).status, "insufficient_items")
 
     def test_daily_worker_only_runs_when_due_and_keeps_budget_blocked_records(self):
         self.assertIsNone(due_day(self.store, STARTED, 21))
@@ -353,7 +459,7 @@ class FeedWebTests(unittest.TestCase):
                 "INSERT INTO product_hunt_briefs VALUES (?, ?)",
                 (
                     DAY.isoformat(),
-                    brief(story(title="<script>unsafe()</script>")).model_dump_json(),
+                    brief(story(title="<script>unsafe()</script>", rank=None)).model_dump_json(),
                 ),
             )
         self.app = create_app(self.path)
@@ -363,9 +469,27 @@ class FeedWebTests(unittest.TestCase):
         browser = self.app.test_client()
         html = browser.get("/").get_data(as_text=True)
         self.assertEqual(len(self.store.feed()), 1)
-        self.assertIn("AI 产品动态", html)
+        self.assertIn("今日 Top", html)
+        self.assertIn("首期 Top 待更新", html)
+        self.assertNotIn("unsafe()", html)
+        sdk = Mock()
+        sdk_response(
+            sdk,
+            story(title="<script>unsafe()</script>"),
+            story("https://www.producthunt.com/products/second", title="第二", rank=2),
+            story(
+                "https://www.producthunt.com/products/third",
+                title="第三",
+                rank=3,
+                published_on=DAY - timedelta(days=1),
+            ),
+        )
+        run_once(sdk, self.store, day=DAY, days=3, budget_usd=BUDGET)
+        html = browser.get("/").get_data(as_text=True)
         self.assertIn("&lt;script&gt;", html)
         self.assertNotIn("<script>", html)
+        self.assertIn("回补 · 11 月 21 日", html)
+        self.assertIn("日榜第 3 名", html)
         self.assertEqual(browser.get("/healthz").json, {"status": "ok"})
         self.assertEqual(browser.get("/research").status_code, 404)
         self.assertEqual(browser.get(f"/briefs/{DAY}").status_code, 404)
