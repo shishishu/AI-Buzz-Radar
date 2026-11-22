@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 from datetime import date, datetime
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -13,7 +13,7 @@ from openai import APIError, OpenAI
 from ai_buzz_radar.agent import TIMEZONE, describe_error, open_client, run_research
 from ai_buzz_radar.models import DATABASE_PATH, Brief, Selection, start_date
 from ai_buzz_radar.store import Store
-from ai_buzz_radar.usage import DEFAULT_BUDGET_USD
+from ai_buzz_radar.usage import DEFAULT_BUDGET_USD, parse_budget
 
 logger = logging.getLogger(__name__)
 
@@ -54,16 +54,6 @@ def usage_report(store: Store, day: date | None) -> str:
     )
 
 
-def parse_budget(value: str) -> Decimal:
-    try:
-        budget = Decimal(value)
-    except InvalidOperation as error:
-        raise argparse.ArgumentTypeError("Use a positive USD amount") from error
-    if not budget.is_finite() or budget <= 0:
-        raise argparse.ArgumentTypeError("Use a positive USD amount")
-    return budget
-
-
 def main(argv: list[str] | None = None) -> int:
     load_dotenv(".env.local")
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -81,7 +71,7 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument(
         "--budget-usd",
         type=parse_budget,
-        default=DEFAULT_BUDGET_USD,
+        default=os.getenv("RADAR_BUDGET_USD", str(DEFAULT_BUDGET_USD)),
         help="Cumulative estimated spend allowed for this database (default: $1)",
     )
     show = commands.add_parser("show", help="Print a saved brief as JSON")

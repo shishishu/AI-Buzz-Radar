@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from openai.types.responses import Response
 
@@ -24,6 +24,16 @@ MILLION = 1_000_000
 REQUEST_RESERVE_USD = (
     200_000 * STANDARD_CACHE_WRITE_30M + MAX_OUTPUT_TOKENS * STANDARD_OUTPUT
 ) / MILLION + (MAX_WEB_CALLS + 1) * WEB_SEARCH_ACTION
+
+
+def parse_budget(value: str) -> Decimal:
+    try:
+        budget = Decimal(value)
+    except InvalidOperation as error:
+        raise ValueError("Use a positive USD amount for the budget") from error
+    if not budget.is_finite() or budget <= 0:
+        raise ValueError("Use a positive USD amount for the budget")
+    return budget
 
 
 class Usage(Record):

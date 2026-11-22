@@ -14,7 +14,7 @@ from openai import APIError
 from ai_buzz_radar.agent import TIMEZONE, describe_error, open_client, run_research
 from ai_buzz_radar.models import DATABASE_PATH, RequestTrace, Selection, start_date
 from ai_buzz_radar.store import RequestExists, Store
-from ai_buzz_radar.usage import DEFAULT_BUDGET_USD
+from ai_buzz_radar.usage import DEFAULT_BUDGET_USD, parse_budget
 
 COOKIE_NAME = "radar_browser"
 BROWSER_TOKEN = re.compile(r"[A-Za-z0-9_-]{43}")
@@ -37,6 +37,9 @@ def form_token(token: str, request_id: str) -> str:
 def create_app(database: Path | None = None) -> Flask:
     app = Flask(__name__)
     app.config["RADAR_REQUESTS_ENABLED"] = bool(os.environ.get("OPENAI_API_KEY"))
+    app.config["RADAR_BUDGET_USD"] = parse_budget(
+        os.getenv("RADAR_BUDGET_USD", str(DEFAULT_BUDGET_USD))
+    )
     app.config["MAX_CONTENT_LENGTH"] = 16_384
     store = Store(database or Path(os.getenv("RADAR_DB", DATABASE_PATH)))
 
@@ -155,7 +158,7 @@ def create_app(database: Path | None = None) -> Flask:
                     client,
                     store,
                     selection=selection,
-                    budget_usd=DEFAULT_BUDGET_USD,
+                    budget_usd=app.config["RADAR_BUDGET_USD"],
                     user_id=user_id,
                     request_id=request_id,
                 )

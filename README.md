@@ -61,7 +61,7 @@ uv run --locked python -m unittest discover -s tests -v
 
 ## 云端试用
 
-仓库附带容器配置。Web 服务使用 Gunicorn，通过 SQLite 读取简报。启动时提供环境变量 `OPENAI_API_KEY` 即可启用按需生成。网页生成默认使用同一数据库的 $1 累计估算预算。公共生成可以在同一台服务器上用单次命令执行。
+仓库附带容器配置。Web 服务使用 Gunicorn，通过 SQLite 读取简报。启动时提供环境变量 `OPENAI_API_KEY` 即可启用按需生成。累计估算预算默认为每库 $1，可用环境变量 `RADAR_BUDGET_USD` 调整。公共生成可以在同一台服务器上用单次命令执行。
 
 ```bash
 docker compose up -d --build web
