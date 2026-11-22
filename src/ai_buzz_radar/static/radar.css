@@ -29,6 +29,20 @@ main { padding-bottom: 56px; }
 .rank, .backfill { color: var(--muted); font-size: .81rem; font-variant-numeric: tabular-nums; }
 .story h2 { margin: 0 0 3px; font-size: 1.1rem; line-height: 1.4; }
 .story p { margin: 3px 0 0; line-height: 1.6; color: var(--muted); }
+.story .source-note { margin-top: 6px; font-size: .88rem; }
+.source-note strong { color: var(--ink); font-weight: 650; margin-right: .25em; }
+.evidence { margin-top: 7px; font-size: .85rem; }
+.evidence summary { color: var(--accent); cursor: pointer; width: fit-content; }
+.evidence summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.evidence table { border-collapse: collapse; margin-top: 6px; }
+.evidence th, .evidence td { border-bottom: 1px solid var(--line); padding: 5px 10px 5px 0; text-align: left; vertical-align: top; }
+.evidence th { font-weight: 650; }
+.evidence td { color: var(--muted); }
+.evidence figure { margin: 8px 0 0; }
+.evidence img, .evidence iframe { display: block; max-width: 100%; border: 0; }
+.evidence img { height: auto; }
+.evidence iframe { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.evidence figcaption { color: var(--muted); margin-top: 4px; }
 .source { white-space: nowrap; font-size: .85rem; text-underline-offset: 3px; }
 .empty { color: var(--muted); padding-top: 12px; }
 .skip { position: absolute; top: 12px; left: -9999px; padding: 10px; background: var(--paper); }

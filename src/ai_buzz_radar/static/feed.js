@@ -1,5 +1,18 @@
 const feed = document.querySelector("[data-view-token]");
 
+feed?.querySelectorAll(".evidence").forEach((details) => {
+  const video = details.querySelector("template");
+  if (!video) return;
+
+  details.addEventListener("toggle", () => {
+    if (details.open && !details.querySelector("iframe")) {
+      video.after(video.content.cloneNode(true));
+    } else if (!details.open) {
+      details.querySelector("iframe")?.remove();
+    }
+  });
+});
+
 if (feed && "IntersectionObserver" in window) {
   const observer = new IntersectionObserver((entries) => {
     for (const entry of entries) {

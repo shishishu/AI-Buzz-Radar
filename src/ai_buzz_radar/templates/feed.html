@@ -34,6 +34,36 @@
         <time class="backfill" datetime="{{ story.published_on }}">回补 · {{ story.published_on.month }} 月 {{ story.published_on.day }} 日</time>
         {% endif %}
         <p>{{ story.summary }}</p>
+        {% if story.source_note %}
+        <p class="source-note"><strong>发布页要点</strong> {{ story.source_note }}</p>
+        {% endif %}
+        {% if story.facts or story.media %}
+        <details class="evidence">
+          <summary>{% if story.media %}{% if story.media.is_video %}查看演示{% else %}查看发布图{% endif %}{% if story.facts %}与产品信息{% endif %}{% else %}查看产品信息{% endif %}</summary>
+          {% if story.facts %}
+          <table aria-label="{{ story.title }} 的产品信息">
+            <tbody>
+              {% for fact in story.facts %}
+              <tr><th scope="row">{{ fact.label }}</th><td>{{ fact.value }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+          {% if story.media %}
+          <figure>
+            {% if story.media.is_video %}
+            <template>
+              <iframe src="{{ story.media.url }}" title="{{ story.media.caption }}" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </template>
+            <noscript>可在 Product Hunt 原文中查看演示。</noscript>
+            {% else %}
+            <img src="{{ story.media.url }}" alt="{{ story.media.caption }}" loading="lazy" decoding="async">
+            {% endif %}
+            <figcaption>{{ story.media.caption }} · Product Hunt 发布页</figcaption>
+          </figure>
+          {% endif %}
+        </details>
+        {% endif %}
       </div>
       <a class="source" href="{{ url_for('open_source', item_id=item.id) }}" aria-label="{{ story.title }} 的 Product Hunt 原文">原文 <span aria-hidden="true">↗</span></a>
     </li>

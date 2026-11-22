@@ -49,6 +49,7 @@ def create_app(database: Path | None = None) -> Flask:
     def protect(response):
         response.headers["Content-Security-Policy"] = (
             "default-src 'none'; style-src 'self'; script-src 'self'; connect-src 'self'; "
+            "img-src https://ph-files.imgix.net; frame-src https://www.youtube-nocookie.com; "
             "base-uri 'none'; frame-ancestors 'none'"
         )
         response.headers["X-Content-Type-Options"] = "nosniff"

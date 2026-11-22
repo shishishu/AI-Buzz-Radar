@@ -24,9 +24,11 @@ uv run --locked radar daily --hour 21 --budget-usd 1.00
 
 每日任务默认北京时间 21:00 运行，每天最多自动尝试一次，进程重启后仍使用 SQLite 的运行记录。手动的 `run --day YYYY-MM-DD` 可以指定日期，`--force` 可以在同一天再研究一次。默认窗口是当天和前两天，`--days 4` 可回补前三天。
 
-Agent 从 Product Hunt 当天日榜前 20 个有编号的条目开始，筛选核心功能依赖 AI 或有实质 AI 更新的发布。每条都需要当天日榜和具体站内发布页的证据。先按原名次选当天前三条，只有新增用途时才加入第 4、5 条。当日不足三条时，按日期和原名次从近期补到三条。仍不足时保留上一期及其日期。旧数据继续可在账本和已收录条目中查阅。 [Responses 网页搜索](https://developers.openai.com/api/docs/guides/tools-web-search)
+Agent 依次检查 Product Hunt 当天日榜前 20 个有编号的条目。发布页需要明确说明核心 AI 能力、Agent、专为模型或 Agent 设计的工具，或本次发布中的实质 AI 更新。只有分类标签或笼统宣传的条目跳过。日报选出前三个符合条件的发布并保留各自的原名次。当日不足三条时，从近两天按日期和原名次去重补齐，标记原发布日期。仍不足时继续展示上一期。 [Responses 网页搜索](https://developers.openai.com/api/docs/guides/tools-web-search)
 
-也可以用 `radar run --day YYYY-MM-DD --force --snapshot PATH` 验证已核对的官方日榜快照。JSON 包含 `day`、`source_url` 和 `entries`。每条包含 `source_rank`、`title`、`launch_url` 和来自发布页的 `evidence`。此模式把原名次固定在快照中，模型负责筛选与撰写一句话。
+卡片直接显示一句话概述和发布页事实摘要。经过核对且能解释产品功能的发布图、产品信息表或发布页链接的 YouTube 演示可在卡片内展开。视频在展开时加载。
+
+也可以用 `radar run --day YYYY-MM-DD --force --snapshot PATH` 验证已核对的官方日榜快照。JSON 包含 `day`、`source_url` 和 `entries`。每条包含 `source_rank`、`title`、`launch_url` 和来自发布页的 `evidence`，可附 `facts`（`label`、`value`）和 `media`（`url`、`caption`）。此模式固定日榜原名次，模型负责筛选并总结发布内容。
 
 ## 匿名阅读记录
 
@@ -54,7 +56,7 @@ uv run --locked python -m unittest discover -s tests -v
 
 离线测试涵盖站内证据、回补与去重、旧简报迁移、匿名事件、流式计时和预算拦截。部署时，Web 和每日任务共享同一个 SQLite 卷。Web 服务监听宿主机的 `127.0.0.1:8000`，每日任务从部署环境读取 API 密钥。
 
-2026-11-22 的「今日 Top」实测用已核对的日榜前四名快照，最终发布 #1 Rankhog、#2 Yoroll 和 #3 Resurf。TTFT 为 4.27 秒，TPOT 估算为 10.57 ms/token，本次估算费用 $0.006456。同一数据库的全部实测累计估算为 $0.7051132。 [Product Hunt 当天日榜](https://www.producthunt.com/leaderboard/daily/2026/11/22)
+2026-11-22 的实测使用已核对的日榜前五名快照，最终发布 #1 Rankhog、#2 Yoroll 和 #3 Resurf。输入 1,584 tokens，输出 607，缓存读取 0，缓存写入 1,581。TTFT 为 3.78 秒，TPOT 估算为 9.98 ms/token，本次估算费用 $0.0100285。同一数据库的实测累计估算为 $0.7151417。 [Product Hunt 当天日榜](https://www.producthunt.com/leaderboard/daily/2026/11/22)
 
 ```bash
 docker compose up -d --build web

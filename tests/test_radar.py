@@ -10,12 +10,13 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock, patch
 
 from openai.types.responses import Response, ResponseOutputItem, ResponseUsage
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 
 from ai_buzz_radar.agent import TIMEZONE
 from ai_buzz_radar.cli import due_day, run_once, usage_report
 from ai_buzz_radar.models import (
     FeedItem,
+    LaunchMedia,
     LeaderboardSnapshot,
     RankedLaunch,
     RankedResearch,
@@ -50,6 +51,7 @@ def story(
     title: str = "模型上线",
     rank: int | None = 1,
     use_case="developer_tools",
+    **content,
 ) -> Story:
     return Story(
         title=title,
@@ -58,6 +60,9 @@ def story(
         launch_url=url,
         source_rank=rank,
         use_case=use_case,
+        ai_relevance="ai_tooling",
+        source_note="发布页说明该工具可以在本地连接模型。",
+        **content,
     )
 
 
@@ -392,7 +397,7 @@ class FeedRunTests(unittest.TestCase):
             )
         self.assertEqual(len(self.store.top_edition(DAY).items), 3)
 
-    def test_today_top_stops_at_three_without_distinct_use_cases_and_caps_at_five(self):
+    def test_today_top_stops_at_three_by_original_rank_even_with_different_use_cases(self):
         items = [
             FeedItem(
                 id=rank,
@@ -413,7 +418,25 @@ class FeedRunTests(unittest.TestCase):
         ):
             item.story.use_case = category
         result = select_top(items, day=DAY, window_start=WINDOW_START)
-        self.assertEqual([item.story.source_rank for item in result.items], [1, 2, 5, 7, 8])
+        self.assertEqual([item.story.source_rank for item in result.items], [1, 2, 5])
+
+    def test_ranked_edition_skips_weak_matches_and_keeps_nonconsecutive_ranks(self):
+        candidates = [
+            story(f"https://www.producthunt.com/posts/p-{rank}", title=f"发布{rank}", rank=rank)
+            for rank in (1, 2, 4, 6, 7)
+        ]
+        result = response(*candidates)
+        message = result.output[-1].content[0]
+        data = json.loads(message.text)
+        data["stories"][0]["ai_relevance"] = "unrelated"
+        message.text = json.dumps(data)
+        sdk_response(self.sdk, final_response=result)
+        report = self.run_feed()
+        self.assertEqual([item.source_rank for item in report.stories], [2, 4, 6])
+        self.assertEqual(report.rejected_stories, 1)
+        self.assertEqual(
+            [item.story.source_rank for item in self.store.top_edition(DAY).items], [2, 4, 6]
+        )
 
     def test_new_window_with_under_three_ranked_items_keeps_previous_edition(self):
         self.run_feed()
@@ -493,6 +516,54 @@ class FeedWebTests(unittest.TestCase):
         self.assertEqual(browser.get("/healthz").json, {"status": "ok"})
         self.assertEqual(browser.get("/research").status_code, 404)
         self.assertEqual(browser.get(f"/briefs/{DAY}").status_code, 404)
+
+    def test_source_note_and_verified_snapshot_media_render_with_safe_embed(self):
+        image = "https://ph-files.imgix.net/e3de00d0-b549-4e7e-b8f9-34222a09983e.jpeg"
+        video = "https://www.youtube.com/watch?v=abcdefg1234"
+        launches = [
+            story(LAUNCH, title="发布图", rank=1),
+            story("https://www.producthunt.com/posts/with-video", title="演示", rank=2),
+            story("https://www.producthunt.com/posts/text-only", title="摘要", rank=3),
+        ]
+        snapshot = LeaderboardSnapshot(
+            day=DAY,
+            source_url=LEADERBOARD,
+            entries=[
+                SnapshotEntry(
+                    title=item.title,
+                    source_rank=item.source_rank,
+                    launch_url=item.launch_url,
+                    evidence=item.source_note,
+                    facts=[
+                        {"label": "平台", "value": "Mac"},
+                        {"label": "AI 接入", "value": "MCP"},
+                    ]
+                    if index == 0
+                    else [],
+                    media={"url": [image, video][index], "caption": item.title}
+                    if index < 2
+                    else None,
+                )
+                for index, item in enumerate(launches)
+            ],
+        )
+        sdk = Mock()
+        sdk_response(sdk, *launches)
+        run_once(sdk, self.store, day=DAY, days=3, budget_usd=BUDGET, snapshot=snapshot)
+        page = self.app.test_client().get("/")
+        html = page.get_data(as_text=True)
+        self.assertEqual(html.count("发布页要点"), 3)
+        self.assertIn(f'<img src="{image}"', html)
+        self.assertIn('<th scope="row">AI 接入</th><td>MCP</td>', html)
+        self.assertRegex(
+            html,
+            r'<template>\s*<iframe src="https://www.youtube-nocookie.com/embed/abcdefg1234"',
+        )
+        self.assertIn(
+            "frame-src https://www.youtube-nocookie.com", page.headers["Content-Security-Policy"]
+        )
+        with self.assertRaises(ValidationError):
+            LaunchMedia(url="https://ph-files.imgix.net.attacker.example/other.png", caption="图")
 
     def test_cookie_attributes_site_views_and_original_clicks_are_correlated(self):
         browser = self.app.test_client()

@@ -16,6 +16,7 @@ from ai_buzz_radar.models import (
     MAX_SOURCE_RANK,
     PRODUCT_HUNT,
     Brief,
+    LaunchMedia,
     LeaderboardSnapshot,
     RankedResearch,
     RequestTrace,
@@ -59,12 +60,24 @@ Use any unverified_retry_urls only as leads; verify the printed rank and launch 
 If an official_snapshot is supplied, work only from its verified launch entries. Copy the
 rank, title, launch URL and snapshot date exactly and use its provided evidence.
 
-Keep entries whose primary purpose relies on AI or whose release adds a substantial AI
-capability. Return all qualified entries you can verify, up to 20, newest date then original
-rank. Tag each use_case by the primary thing the release lets the user do. Lead generation
-and sales outreach both use sales_marketing. Give exactly one
-short Simplified Chinese sentence naming the improvement or what it lets someone do, with
-plain text, no extra citations, and no unverified performance or marketing claims.
+The edition takes three releases. Follow the original ranks from highest to lowest,
+skipping weak matches and continuing to lower ranks. Qualify a launch only if the release
+page identifies a concrete core capability: core_ai (AI is necessary to the primary
+workflow), agent (building or using agents is central), ai_tooling (purpose-built model or
+agent infrastructure or context tooling), or substantial_ai_update (a material named AI
+addition is a focus of this launch). An AI category, vague claims, incidental conveniences
+or using AI to build a general product are insufficient. Skip unrelated releases. Return
+up to three qualified launches per date, newest date then original rank. Tag each
+use_case by the primary thing the release lets the user do.
+
+Use short plain Simplified Chinese. In summary, write one sentence about what the release
+does. In source_note, paraphrase one or two different concrete details from its launch page
+or snapshot evidence that explain how it works or what changed. Do not repeat the summary,
+include citations, or add unverified claims. Include facts only if two to four explicit
+label/value pairs from the same launch page help explain or compare capabilities. Otherwise
+return []. Set media to null unless the launch page itself explicitly shows a useful Product
+Hunt gallery image or links a relevant YouTube demo and you observed that exact media URL.
+When given a snapshot use null for media; the application attaches its verified media.
 """
 logger = logging.getLogger(__name__)
 
@@ -113,14 +126,18 @@ def retry_urls(trace: RequestTrace | None) -> list[str]:
             if content.get("type") != "output_text":
                 continue
             try:
-                research = RankedResearch.model_validate_json(content["text"])
-            except ValueError:
+                body = json.loads(content["text"])
+            except (KeyError, TypeError, ValueError):
                 continue
-            return [
-                f"https://www.{PRODUCT_HUNT}{key}"
-                for story in research.stories[:5]
-                if (key := launch_key(story.launch_url)) is not None
-            ]
+            entries = body.get("stories") if isinstance(body, dict) else None
+            if isinstance(entries, list):
+                return [
+                    f"https://www.{PRODUCT_HUNT}{key}"
+                    for entry in entries[:5]
+                    if isinstance(entry, dict)
+                    and isinstance(url := entry.get("launch_url"), str)
+                    and (key := launch_key(url)) is not None
+                ]
     return []
 
 
@@ -133,29 +150,42 @@ def ranked_stories(
         if snapshot
         else {}
     )
-    ranks = Counter((entry.published_on, entry.source_rank) for entry in ranked.stories)
+    qualified = [entry for entry in ranked.stories if entry.ai_relevance != "unrelated"]
+    ranks = Counter((entry.published_on, entry.source_rank) for entry in qualified)
     stories = []
-    for entry in ranked.stories:
+    for entry in qualified:
         key = launch_key(entry.launch_url)
         summary = re.split(r"(?<=[。！？!?])\s*|(?<=\.)\s+", entry.summary.strip(), maxsplit=1)[0]
+        note = Story.clean_inline_citations(entry.source_note)
         if (
             key is None
             or not 1 <= entry.source_rank <= MAX_SOURCE_RANK
             or ranks[(entry.published_on, entry.source_rank)] != 1
             or not 1 <= len(summary) <= 140
+            or not 1 <= len(note) <= 180
+            or note == summary
         ):
             continue
+        facts = entry.facts[:4] if len(entry.facts) >= 2 else []
+        media = None
         if snapshot:
             source = snapshot_slots.get((entry.source_rank, key))
             if source is None or entry.published_on != snapshot.day:
                 continue
             title = source.title
+            facts = source.facts if len(source.facts) >= 2 else facts
+            media = source.media
         else:
             if key not in launch_pages or not any(
                 observed_leaderboard(url, entry.published_on) for url in urls
             ):
                 continue
             title = entry.title
+            if entry.media and entry.media.url in urls:
+                try:
+                    media = LaunchMedia.model_validate(entry.media.model_dump())
+                except ValidationError:
+                    pass
         stories.append(
             Story(
                 title=title,
@@ -164,9 +194,13 @@ def ranked_stories(
                 launch_url=f"https://www.{PRODUCT_HUNT}{key}",
                 source_rank=entry.source_rank,
                 use_case=entry.use_case,
+                ai_relevance=entry.ai_relevance,
+                source_note=note,
+                facts=facts,
+                media=media,
             )
         )
-    if ranked.stories and not stories:
+    if qualified and not stories:
         raise ValueError("No entries matched a Product Hunt daily rank and launch-page evidence")
     return Research(stories=stories)
 

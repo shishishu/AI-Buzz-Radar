@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 PRODUCT_HUNT = "producthunt.com"
 DATABASE_PATH = "data/product-hunt.sqlite3"
 MAX_SOURCE_RANK = 20
+TOP_COUNT = 3
+AIRelevance = Literal["core_ai", "agent", "ai_tooling", "substantial_ai_update"]
 UseCase = Literal[
     "sales_marketing",
     "content_creation",
@@ -77,6 +79,48 @@ class Record(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class FactRow(Record):
+    label: str = Field(min_length=1, max_length=24)
+    value: str = Field(min_length=1, max_length=100)
+
+
+class MediaReference(Record):
+    url: str
+    caption: str
+
+
+class LaunchMedia(MediaReference):
+    url: str = Field(max_length=500)
+    caption: str = Field(min_length=1, max_length=100)
+
+    @field_validator("url")
+    @classmethod
+    def validate_url(cls, value: str) -> str:
+        if any(char.isspace() or ord(char) < 32 or char == "\\" for char in value):
+            raise ValueError("Media URL must be a Product Hunt gallery image or a YouTube embed")
+        parts = urlsplit(value)
+        if parts.scheme == "https":
+            if parts.netloc == "ph-files.imgix.net" and re.fullmatch(
+                r"/[0-9a-f-]{36}\.(?:png|jpe?g|webp|gif|avif)", parts.path, re.IGNORECASE
+            ):
+                return parts._replace(fragment="").geturl()
+            video_id = None
+            if parts.netloc in {"youtube.com", "www.youtube.com"} and parts.path == "/watch":
+                ids = parse_qs(parts.query).get("v", [])
+                video_id = ids[0] if len(ids) == 1 else None
+            elif parts.netloc == "youtu.be":
+                video_id = parts.path.removeprefix("/")
+            elif parts.netloc == "www.youtube-nocookie.com" and parts.path.startswith("/embed/"):
+                video_id = parts.path.removeprefix("/embed/")
+            if video_id and re.fullmatch(r"[A-Za-z0-9_-]{11}", video_id):
+                return f"https://www.youtube-nocookie.com/embed/{video_id}"
+        raise ValueError("Media URL must be a Product Hunt gallery image or a YouTube embed")
+
+    @property
+    def is_video(self) -> bool:
+        return urlsplit(self.url).netloc == "www.youtube-nocookie.com"
+
+
 class Story(Record):
     title: str
     published_on: date
@@ -86,8 +130,12 @@ class Story(Record):
     launch_url: str
     source_rank: int | None = Field(default=None, ge=1, le=MAX_SOURCE_RANK)
     use_case: UseCase | None = None
+    ai_relevance: AIRelevance | None = None
+    source_note: str | None = None
+    facts: list[FactRow] = Field(default_factory=list, max_length=4)
+    media: LaunchMedia | None = None
 
-    @field_validator("title", "summary", "why_it_matters", "caveat")
+    @field_validator("title", "summary", "why_it_matters", "caveat", "source_note")
     @classmethod
     def clean_inline_citations(cls, value: str | None) -> str | None:
         return INLINE_CITATION.sub("", value).strip() if value is not None else None
@@ -113,7 +161,12 @@ class FeedItem(Record):
 
 class TopEdition(Record):
     day: date
-    items: list[FeedItem] = Field(min_length=3, max_length=5)
+    items: list[FeedItem] = Field(min_length=TOP_COUNT, max_length=TOP_COUNT)
+
+    @field_validator("items", mode="before")
+    @classmethod
+    def trim_older_editions(cls, items: Any) -> Any:
+        return items[:TOP_COUNT] if isinstance(items, list) else items
 
 
 def select_top(items: list[FeedItem], *, day: date, window_start: date) -> TopEdition | None:
@@ -121,7 +174,9 @@ def select_top(items: list[FeedItem], *, day: date, window_start: date) -> TopEd
         (
             item
             for item in items
-            if item.story.source_rank is not None and window_start <= item.story.published_on <= day
+            if item.story.source_rank is not None
+            and item.story.ai_relevance is not None
+            and window_start <= item.story.published_on <= day
         ),
         key=lambda item: (-item.story.published_on.toordinal(), item.story.source_rank),
     )
@@ -143,21 +198,9 @@ def select_top(items: list[FeedItem], *, day: date, window_start: date) -> TopEd
         seen_items.add(item.id)
         seen_ranks.add(rank_on_day)
         unique.append(item)
-
-    today = [item for item in unique if item.story.published_on == day]
-    selected = today[:3]
-    use_cases = {item.story.use_case for item in selected}
-    for item in today[3:]:
-        use_case = item.story.use_case
-        if use_case and use_case != "other" and use_case not in use_cases:
-            selected.append(item)
-            use_cases.add(use_case)
-        if len(selected) == 5:
-            break
-    if len(selected) < 3:
-        backfill = [item for item in unique if item.story.published_on < day]
-        selected.extend(backfill[: 3 - len(selected)])
-    return TopEdition(day=day, items=selected) if len(selected) >= 3 else None
+        if len(unique) == TOP_COUNT:
+            return TopEdition(day=day, items=unique)
+    return None
 
 
 class RankedLaunch(Record):
@@ -166,7 +209,11 @@ class RankedLaunch(Record):
     launch_url: str
     source_rank: int
     use_case: UseCase
+    ai_relevance: AIRelevance | Literal["unrelated"]
     summary: str
+    source_note: str
+    facts: list[FactRow]
+    media: MediaReference | None
 
 
 class RankedResearch(Record):
@@ -178,6 +225,8 @@ class SnapshotEntry(Record):
     source_rank: int = Field(ge=1, le=MAX_SOURCE_RANK)
     launch_url: str
     evidence: str = Field(min_length=1, max_length=400)
+    facts: list[FactRow] = Field(default_factory=list, max_length=4)
+    media: LaunchMedia | None = None
 
 
 class LeaderboardSnapshot(Record):
