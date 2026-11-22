@@ -1,4 +1,5 @@
 import fcntl
+import json
 import sqlite3
 from contextlib import closing, contextmanager
 from datetime import date, datetime
@@ -236,7 +237,26 @@ class Store:
                 raise RunInProgress("Another feed run is in progress") from error
             yield
 
-    def reserve(self, attempt: Attempt, budget_usd: Decimal, trace: RequestTrace) -> int:
+    @staticmethod
+    def _insert_request(db: sqlite3.Connection, trace: RequestTrace) -> None:
+        db.execute(
+            """INSERT INTO research_requests(request_id, user_id, requested_at, payload)
+               VALUES (?, ?, ?, ?)""",
+            (
+                trace.request_id,
+                trace.user_id,
+                trace.requested_at.isoformat(),
+                trace.model_dump_json(),
+            ),
+        )
+
+    def save_unbilled_request(self, trace: RequestTrace) -> None:
+        with closing(self.connect()) as db, db:
+            self._insert_request(db, trace)
+
+    def reserve(
+        self, attempt: Attempt, budget_usd: Decimal, trace: RequestTrace, *, feed_run: bool = True
+    ) -> int:
         budget_error = None
         with closing(self.connect()) as db, db:
             db.execute("BEGIN IMMEDIATE")
@@ -260,21 +280,13 @@ class Store:
                     (attempt.day.isoformat(), attempt.model_dump_json()),
                 )
                 trace.attempt_id = cursor.lastrowid
-            db.execute(
-                """INSERT INTO research_requests(request_id, user_id, requested_at, payload)
-                   VALUES (?, ?, ?, ?)""",
-                (
-                    trace.request_id,
-                    trace.user_id,
-                    trace.requested_at.isoformat(),
-                    trace.model_dump_json(),
-                ),
-            )
-            db.execute(
-                """INSERT INTO feed_runs(day, request_id) VALUES (?, ?)
-                   ON CONFLICT(day) DO UPDATE SET request_id = excluded.request_id""",
-                (attempt.day.isoformat(), trace.request_id),
-            )
+            self._insert_request(db, trace)
+            if feed_run:
+                db.execute(
+                    """INSERT INTO feed_runs(day, request_id) VALUES (?, ?)
+                       ON CONFLICT(day) DO UPDATE SET request_id = excluded.request_id""",
+                    (attempt.day.isoformat(), trace.request_id),
+                )
         if budget_error:
             raise budget_error
         assert trace.attempt_id is not None
@@ -313,12 +325,40 @@ class Store:
 
     def export_request(self, trace: RequestTrace) -> dict:
         attempt = self.get_attempt(trace.attempt_id)
-        return {
+        report = {
             **trace.model_dump(mode="json"),
             "search_queries": trace.search_queries,
             "opened_pages": trace.opened_pages,
             "attempt": attempt.model_dump(mode="json") if attempt else None,
         }
+        if trace.blog_run_id != trace.request_id:
+            return report
+        with closing(self.connect()) as db:
+            rows = db.execute(
+                """SELECT r.payload, a.payload FROM research_requests r
+                   LEFT JOIN attempts a ON a.id = json_extract(r.payload, '$.attempt_id')
+                   WHERE json_extract(r.payload, '$.blog_run_id') = ? ORDER BY r.rowid""",
+                (trace.blog_run_id,),
+            ).fetchall()
+        rounds = [
+            {**json.loads(payload), "attempt": json.loads(usage) if usage else None}
+            for payload, usage in rows
+        ]
+        catalog = json.loads(trace.input["input"][0]["content"])["candidates"]
+        opened = []
+        for turn in rounds:
+            for read in turn["blog_reads"]:
+                result = json.loads(read["output"])
+                if "article" in result:
+                    opened.append(catalog[result["article"]]["url"])
+        report.update(
+            rounds=rounds,
+            status=rounds[-1]["status"],
+            blog_markdown=rounds[-1].get("blog_markdown"),
+            error=rounds[-1].get("error"),
+            opened_pages=list(dict.fromkeys(opened)),
+        )
+        return report
 
     def attempts(self, day: date | None = None) -> list[tuple[int, Attempt]]:
         with closing(self.connect()) as db:

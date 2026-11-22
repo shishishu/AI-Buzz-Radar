@@ -205,6 +205,60 @@ def ranked_stories(
     return Research(stories=stories)
 
 
+def stream_response(
+    client: OpenAI, store: Store, attempt: Attempt, trace: RequestTrace
+) -> Response:
+    first_text_at = last_text_at = None
+    text_deltas = 0
+    response = None
+    started = monotonic()
+    try:
+        with client.responses.create(**trace.input) as stream:
+            trace.http_request_id = stream.response.headers.get("x-request-id")
+            for event in stream:
+                if event.type == "response.output_text.delta" and event.delta:
+                    last_text_at = monotonic()
+                    text_deltas += 1
+                    if first_text_at is None:
+                        first_text_at = last_text_at
+                        attempt.ttft_ms = round((first_text_at - started) * 1000, 3)
+                elif event.type in {"response.completed", "response.incomplete", "response.failed"}:
+                    response = event.response
+        if response is None:
+            raise RuntimeError("Responses stream ended without a terminal response")
+    except (APIError, RuntimeError) as error:
+        rejected = isinstance(error, APIStatusError) and error.status_code in {
+            400,
+            401,
+            403,
+            404,
+            422,
+            429,
+        }
+        attempt.status = "rejected" if rejected else "usage_unavailable"
+        attempt.duration_seconds = round(monotonic() - started, 1)
+        trace.status = attempt.status
+        trace.error = describe_error(error)
+        if isinstance(error, APIStatusError):
+            trace.http_request_id = error.request_id or trace.http_request_id
+        store.update_attempt(trace.attempt_id, attempt, trace)
+        raise
+
+    trace.response = response.model_dump(mode="json", exclude_unset=True)
+    trace.status = "received"
+    attempt.response_id = response.id
+    attempt.response_status = response.status
+    attempt.duration_seconds = round(monotonic() - started, 1)
+    attempt.usage = Usage.from_response(response)
+    if attempt.usage and text_deltas > 1:
+        visible_tokens = attempt.usage.output_tokens - attempt.usage.reasoning_tokens
+        if visible_tokens > 1 and first_text_at is not None and last_text_at is not None:
+            attempt.tpot_ms = round(1000 * (last_text_at - first_text_at) / (visible_tokens - 1), 3)
+    attempt.status = "received"
+    store.update_attempt(trace.attempt_id, attempt, trace)
+    return response
+
+
 def run_research(
     client: OpenAI,
     store: Store,
@@ -286,54 +340,7 @@ def run_research(
         day,
         attempt.reserved_usd,
     )
-    first_text_at = last_text_at = None
-    text_deltas = 0
-    response = None
-    started = monotonic()
-    try:
-        with client.responses.create(**trace.input) as stream:
-            trace.http_request_id = stream.response.headers.get("x-request-id")
-            for event in stream:
-                if event.type == "response.output_text.delta" and event.delta:
-                    last_text_at = monotonic()
-                    text_deltas += 1
-                    if first_text_at is None:
-                        first_text_at = last_text_at
-                        attempt.ttft_ms = round((first_text_at - started) * 1000, 3)
-                elif event.type in {"response.completed", "response.incomplete", "response.failed"}:
-                    response = event.response
-        if response is None:
-            raise RuntimeError("Responses stream ended without a terminal response")
-    except (APIError, RuntimeError) as error:
-        rejected = isinstance(error, APIStatusError) and error.status_code in {
-            400,
-            401,
-            403,
-            404,
-            422,
-            429,
-        }
-        attempt.status = "rejected" if rejected else "usage_unavailable"
-        attempt.duration_seconds = round(monotonic() - started, 1)
-        trace.status = attempt.status
-        trace.error = describe_error(error)
-        if isinstance(error, APIStatusError):
-            trace.http_request_id = error.request_id or trace.http_request_id
-        store.update_attempt(attempt_id, attempt, trace)
-        raise
-
-    trace.response = response.model_dump(mode="json", exclude_unset=True)
-    trace.status = "received"
-    attempt.response_id = response.id
-    attempt.response_status = response.status
-    attempt.duration_seconds = round(monotonic() - started, 1)
-    attempt.usage = Usage.from_response(response)
-    if attempt.usage and text_deltas > 1:
-        visible_tokens = attempt.usage.output_tokens - attempt.usage.reasoning_tokens
-        if visible_tokens > 1 and first_text_at is not None and last_text_at is not None:
-            attempt.tpot_ms = round(1000 * (last_text_at - first_text_at) / (visible_tokens - 1), 3)
-    attempt.status = "received"
-    store.update_attempt(attempt_id, attempt, trace)
+    response = stream_response(client, store, attempt, trace)
     try:
         if response.status != "completed":
             reason = getattr(response.incomplete_details, "reason", None)

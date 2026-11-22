@@ -1,8 +1,24 @@
 # AI Buzz Radar
 
-一个极简的 Product Hunt AI 产品日报。首页的「今日 Top」显示原名次、产品名、一句话简介和 Product Hunt 原文。回补条目带原始发布日期。
+个人 Agent 系统博客阅读清单。命令行直接使用 Responses API，模型按需查询候选文章的目录和段落，输出带原文依据的 1 分钟速览与 1 小时深读路线。 [查看真实样例](examples/agent-reading-2026-11-22.md)
 
-## 本地运行
+## Agent 系统博客 MVP
+
+需要 Python 3.12、uv 和现有的 `OPENAI_API_KEY`。默认检查 Anthropic Engineering、Anthropic Research 和 Lil’Log 当前索引里近 30 个自然日的发布，根据原文链接去重。
+
+```bash
+uv sync --locked --python 3.12
+uv run --locked radar blogs --days 30 --budget-usd 1.00
+uv run --locked radar request REQUEST_ID
+```
+
+阅读清单写到标准输出，可重定向成 Markdown。日志和本次 request_id 写到标准错误。检索日期可用 `--day YYYY-MM-DD` 指定，历史结果受来源当前索引覆盖范围限制。来源和允许读取的文章路径在 `blogs.py` 的 `SOURCES` 中配置。
+
+按原发布日期过滤后，模型优先挑选与 Agent 系统直接相关、有具体机制、对照实验、失败分析或技术综述的文章，可选 0–3 篇。程序验证引用来自实际读取的段落、没有重复入选，以及每条路线合计 60 分钟。是否切题、结论是否涵盖原文限制仍需阅读者评估。
+
+每次运行最多四轮 Responses 请求，共用原有 SQLite 账本和累计预算。每轮保存输入、响应、工具调用与返回的原文、token、估算成本和时延。只产生工具调用的轮次没有可见正文首 token，TTFT 和 TPOT 为空。没有新候选时记录空清单，不调用模型。
+
+## Product Hunt 本地网页
 
 需要 Python 3.12 和 [uv](https://docs.astral.sh/uv/)。
 

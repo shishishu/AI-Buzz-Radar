@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import sys
+from contextlib import nullcontext
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -12,6 +13,8 @@ from dotenv import load_dotenv
 from openai import APIError, OpenAI
 
 from ai_buzz_radar.agent import TIMEZONE, describe_error, open_client, run_research
+from ai_buzz_radar.blog_agent import run_blog
+from ai_buzz_radar.blogs import Reader, discover
 from ai_buzz_radar.models import DATABASE_PATH, Brief, LeaderboardSnapshot, Selection, start_date
 from ai_buzz_radar.store import Store
 from ai_buzz_radar.usage import (
@@ -129,6 +132,14 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument(
         "--force", action="store_true", help="Run an additional update for the same date"
     )
+    blog = commands.add_parser("blogs", help="Curate recent technical blogs about agent systems")
+    blog.add_argument("--day", type=date.fromisoformat)
+    blog.add_argument("--days", type=int, default=30)
+    blog.add_argument(
+        "--budget-usd",
+        type=parse_budget,
+        default=os.getenv("RADAR_BUDGET_USD", str(DEFAULT_BUDGET_USD)),
+    )
     daily = commands.add_parser("daily", parents=[generation], help="Refresh the feed daily")
     daily.add_argument("--hour", type=int, default=21, help="Hour in Asia/Shanghai (default: 21)")
     show = commands.add_parser("show", help="Print saved feed items as JSON")
@@ -164,6 +175,25 @@ def main(argv: list[str] | None = None) -> int:
                 [item.model_dump(mode="json") for item in items], ensure_ascii=False, indent=2
             )
         )
+        return 0
+
+    if args.command == "blogs":
+        today = datetime.now(TIMEZONE).date()
+        day = args.day or today
+        if day > today or not 1 <= args.days <= 90:
+            parser.error("blogs requires a past or present date and 1–90 days")
+        try:
+            candidates, warnings = discover(day, args.days)
+            reader = Reader(candidates)
+            with open_client() if candidates else nullcontext() as client:
+                run_id, markdown = run_blog(
+                    client, store, reader, day, args.days, args.budget_usd, warnings
+                )
+            print(markdown)
+            print(f"request_id={run_id}", file=sys.stderr)
+        except (APIError, OSError, RuntimeError, ValueError) as err:
+            logger.error("%s", describe_error(err))
+            return 1
         return 0
 
     if not 1 <= args.days <= 4:

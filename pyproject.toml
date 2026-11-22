@@ -9,6 +9,7 @@ description = "An AI news research agent powered by Codex and the Responses API.
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "beautifulsoup4>=4.12,<5",
     "flask>=3.1,<4",
     "gunicorn>=23,<27",
     "openai>=2.30,<4",

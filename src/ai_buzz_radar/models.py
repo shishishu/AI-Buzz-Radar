@@ -286,6 +286,9 @@ class RequestTrace(Record):
     input: dict[str, Any]
     status: str = "pending"
     attempt_id: int | None = None
+    blog_run_id: str | None = None
+    blog_reads: list[dict] = Field(default_factory=list)
+    blog_markdown: str | None = None
     http_request_id: str | None = None
     response: dict[str, Any] | None = None
     result: Brief | None = None
