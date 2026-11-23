@@ -1,9 +1,9 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent 系统日报 · {{ day }} | AI Buzz Radar</title><style>{{ style|safe }}</style></head>
+<title>Agent 系统日报 · {{ day }}{% if compare %} · {{ engine }}{% endif %} | AI Buzz Radar</title><style>{{ style|safe }}</style></head>
 <body><main><header><a class="brand" href="index.html">AI Buzz Radar</a>
 <details class="archive"><summary>往期日报</summary><nav aria-label="日报存档">{% for date in dates %}
 <a href="agent-reading-{{ date }}.html"{% if date == day %} aria-current="page"{% endif %}>{{ date }}</a>{% endfor %}</nav></details></header>
 <div class="mast"><h1>Agent 系统日报</h1><p><time datetime="{{ day }}">{{ day.strftime('%Y 年 %m 月 %d 日') }}</time> <span>·</span> 3 篇 <span>·</span> 1 分钟速览</p></div>
 {% for card in cards %}<article>{{ card }}</article>{% endfor %}
-<footer><a href="index.html">最新一期</a><a href="#">回到顶部 ↑</a></footer></main></body></html>
+<footer><a href="index.html">最新一期</a>{% if compare %}<a href="{{ compare[0] }}">同日对照 · {{ compare[1] }}</a>{% endif %}<a href="#">回到顶部 ↑</a></footer></main></body></html>

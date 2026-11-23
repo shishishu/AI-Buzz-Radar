@@ -1,6 +1,6 @@
 # AI Buzz Radar
 
-面向程序员的 Agent 系统日报。每期三篇技术文章，可在首页用一分钟扫读结论和推荐理由，再逐篇展开约十五分钟的深读。原文定位链接、对照表和完整原文放在相应文章下。[打开最新日报](examples/index.html)
+面向程序员的 Agent 系统日报。每期三篇技术文章，可在首页用一分钟扫读结论和推荐理由，再逐篇展开 Summary 与 Thinking。前者梳理机制与证据，后者讨论工程取舍和验证方法。十五分钟是含原文选段的整篇阅读估时。原文定位链接、对照表和完整原文放在相应文章下。[打开最新日报](examples/index.html)
 
 ## 运行日报
 
@@ -27,6 +27,16 @@ uv run --locked radar request REQUEST_ID
 来源包括 Anthropic Engineering、Anthropic Research、Lil’Log、Hugging Face、OpenAI 和 Cloudflare 的一手文章。程序读取各来源当前索引中的日期和标题，按日报日期截断。Responses API 根据技术相关性、机制、实验及失败分析给出候选顺序，优先采用近 30 天、从未收录的文章。可从近 90 天候选和历史已核实文章补读，页面会标记超窗或上次收录日期。冷启动时若没有三篇合格原文，保留原版首页，返回生成失败。回溯旧日期时，当前索引可能无法完整重建当天的候选池。
 
 编辑可用三个 `--pick URL` 指定当期选题，仍需通过来源、日期、原文证据和数量校验。每篇由 `gpt-6.2-sol` 的 `high` 推理生成，三段解读分别核验原文摘录，证据通过才发布整期。图表由原文重新整理。档案目录 `editions/YYYY-MM-DD.json` 内含每篇的请求 ID。旁边的 Markdown 是正文，HTML 由同一份 Markdown 转换。账本记录实际模型输入、响应、原文页、token、缓存读写、TTFT、TPOT 和估算费用。
+
+### 本地 Codex CLI 对照
+
+11 月 21、22 日回填时指定了编辑选题，11 月 23 日启用自动选题。后者可用来对照两种运行方式。[Responses API 样例](examples/agent-reading-2026-11-23.html) · [本地 Codex CLI 样例](examples/codex-cli/agent-reading-2026-11-23.html)
+
+```bash
+uv run --locked python scripts/compare_edition.py --day 2026-11-23
+```
+
+复现实验需要当天的原始 API 账本和已登录的本地 Codex CLI。脚本从选题请求重放候选目录、前期收录日期及筛选要求。CLI 使用 `gpt-6.2-sol / high` 独立排序和解读。两边同时选中的文章使用相同的编号原文节选，模型只读取目录或原文材料。新选入的文章从白名单内的一手来源获取。两版共用证据校验和 Markdown 转 HTML 模板。CLI 运行事件、用量、输入与结果保存在数据库旁的 `cli-comparisons/` 目录，以 CLI 会话 ID 关联。样例中的 API 版经过编辑复核和改版，适合逐篇比较覆盖与取舍。
 
 ### 早期阅读清单实验
 

@@ -27,7 +27,6 @@ SOURCE = b"""<main><article>sidebar</article><div class="blog-content"><h2>
 
 def fixture(url):
     draft = Draft(
-        headline="测试实验设计",
         topic="评测",
         overview="程序员可以通过控制变量理解这项实验的结果。",
         reason="这项对照实验可以指导工具的选择。",
@@ -98,7 +97,7 @@ class EditionTest(unittest.TestCase):
                 self.assertEqual(len(archive(folder)), 2)
                 page = BeautifulSoup((folder / "index.html").read_text(), "html.parser")
                 self.assertEqual(len(page.select("article details table")), 3)
-                self.assertEqual(len(page.select("article h4")), 9)
+                self.assertEqual(len(page.select("article h4")), 6)
                 self.assertEqual(len(page.select("article > .full")), 3)
                 self.assertEqual(len(page.select("nav a")), 2)
 
@@ -117,7 +116,32 @@ class EditionTest(unittest.TestCase):
                 self.assertNotIn(article.url, seen)
                 self.assertTrue(0 <= (day - article.published).days < 30)
                 self.assertFalse(article.note)
-                self.assertEqual(card.h2.get_text(), article.draft.headline)
+                self.assertEqual(card.h2.get_text(), article.title)
+                meta = card.h2.find_previous_sibling()
+                self.assertEqual(
+                    meta.get_text(), f"{article.draft.topic}　{article.published}　{article.source}"
+                )
+                self.assertEqual(
+                    [h.get_text() for h in card.select("details h4")], ["Summary", "Thinking"]
+                )
+                self.assertNotRegex(card.details.get_text(), r"(?:3|7|5) 分钟 ·")
                 self.assertEqual(card.select_one(".full a")["href"], article.url)
                 self.assertEqual({a["href"] for a in card.select("details a")}, set(article.links))
                 seen.add(article.url)
+
+    def test_control_uses_same_article_layout_and_links_back_to_same_day(self):
+        examples = Path(__file__).resolve().parents[1] / "examples"
+        control = examples / "codex-cli"
+        controls = archive(control)
+        self.assertIn(DAY + timedelta(days=2), [e.day for e in controls])
+        for edition in controls:
+            name = f"agent-reading-{edition.day}.html"
+            for base, destination in ((examples, control), (control, examples)):
+                doc = BeautifulSoup((base / name).read_text(), "html.parser")
+                link = doc.select_one('footer a[href*="agent-reading-"]')
+                self.assertEqual((base / link["href"]).resolve(), destination / name)
+                for card in doc.select("article"):
+                    self.assertEqual(card.select_one(".meta").find_next_sibling().name, "h2")
+                    self.assertEqual(
+                        [h.get_text() for h in card.select("details h4")], ["Summary", "Thinking"]
+                    )

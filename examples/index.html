@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent 系统日报 · 2026-11-23 | AI Buzz Radar</title><style>:root{color-scheme:light;--ink:#222c2b;--pine:#235d50;--muted:#546660;--rule:#cbd6cf;--paper:#faf9f5}
+<title>Agent 系统日报 · 2026-11-23 · Responses API | AI Buzz Radar</title><style>:root{color-scheme:light;--ink:#222c2b;--pine:#235d50;--muted:#546660;--rule:#cbd6cf;--paper:#faf9f5}
 *{box-sizing:border-box}
 body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.8 system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
 main{width:min(47rem,calc(100% - 2.5rem));margin:auto}
@@ -16,11 +16,11 @@ h1,h2,h4{line-height:1.35;text-wrap:pretty}
 h1{font:700 clamp(2.35rem,6vw,3.35rem)/1.2 "Songti SC","Noto Serif CJK SC",serif;letter-spacing:-.045em;margin:0 0 .45rem}
 .mast p,.meta,footer{font-size:.86rem;color:var(--muted)}.mast span{padding:0 .25rem}
 article{padding:1.65rem 0;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
-h2{font-size:clamp(1.32rem,3vw,1.68rem);margin:0 0 .26rem}p{margin:.52rem 0}
-.meta{margin:0 0 .8rem}.full{font-size:.88rem;margin-bottom:0}
+h2{font-size:clamp(1.45rem,3.6vw,2rem);margin:.18rem 0 .65rem;line-height:1.18;letter-spacing:-.025em}p{margin:.52rem 0}
+.meta{margin:0;color:#546475}.meta strong{color:var(--pine)}.full{font-size:.88rem;margin-bottom:0}
 article details{margin:.9rem 0 .65rem;background:#eff3ed;border-left:3px solid #91ad9f;padding:.6rem .95rem}
 article summary{width:fit-content;cursor:pointer;font-weight:650}
-h4{font-size:1.05rem;margin:1.2rem 0 .45rem}
+h4{font-size:1.16rem;color:var(--pine);margin:1.2rem 0 .45rem}h4:not(:first-of-type){border-top:1px solid var(--rule);padding-top:1rem}
 details p:has(>a:only-child){font-size:.85rem}
 table{width:100%;border-collapse:collapse;font-size:.93rem}
 td,th{padding:.36rem .55rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
@@ -39,15 +39,16 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 <a href="agent-reading-2026-11-22.html">2026-11-22</a>
 <a href="agent-reading-2026-11-21.html">2026-11-21</a></nav></details></header>
 <div class="mast"><h1>Agent 系统日报</h1><p><time datetime="2026-11-23">2026 年 11 月 23 日</time> <span>·</span> 3 篇 <span>·</span> 1 分钟速览</p></div>
-<article><h2>三次里成功一次，离无人值守还有多远？</h2>
-<p class="meta">智能体评测 · Hugging Face · 原发于 2026-11-23</p>
+<article><p class="meta"><strong>评测与可靠性</strong>　2026-11-23　Hugging Face</p>
+<h2>How to build and maintain an agentic evaluation</h2>
 <p>八道任务，每题跑三次。允许重试，模型能做对七道；要求三次全对，只剩一道。上线前选哪一个指标，取决于失败后有没有人接手。</p>
 <p><strong>推荐理由</strong>　同一模型在同一批任务上的两种通过率，足以改变你对重试次数、人工复核和上线门槛的选择。</p>
-<details><summary>15 分钟深读 · 含原文选段</summary>
-<h4>3 分钟 · 评测看最终产物，不听口头报完</h4>
+<details><summary>深读 · 约 15 分钟</summary>
+<h4>Summary</h4>
+<p><strong>评测看最终产物，不听口头报完</strong></p>
 <p>智能体评测不只核对回答，还检查智能体在环境中留下的最终状态。任务给出指令，智能体运行框架把模型接到工具上，让它在固定版本的环境里操作；评测框架负责重复运行，验证器在每次尝试结束后判分。分数只能告诉你过没过。遇到低分，建议先对照运行轨迹和最终产物，再判断该改模型、运行环境还是评分规则。</p>
 <p><a href="https://huggingface.co/blog/agentic-evals#the-anatomy-of-an-agentic-evaluation">定位原文段落 ↗</a></p>
-<h4>7 分钟 · 先查评分漏洞，再区分成功与稳定</h4>
+<p><strong>先查评分漏洞，再区分成功与稳定</strong></p>
 <p>作者用拉曼光谱拟合做评测，发现如果只检查 D/G 峰强比，不做拟合也能过关，于是补上对拟合结果的检查。改编后的八道任务各跑三次，gpt-oss-120b 在 7/8 道任务上至少成功一次，却只在 1/8 道任务上三次都成功。有人工复核时，可以参考前者；无人值守更应关注后者。不过，这八道开发任务不足以推断模型在新光谱上的表现。</p>
 <p><a href="https://huggingface.co/blog/agentic-evals#results">定位原文段落 ↗</a></p>
 <p><strong>24 次拉曼拟合尝试：首条回复是否标记完成</strong></p>
@@ -70,19 +71,21 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 </tbody>
 </table>
 <p><a href="https://huggingface.co/blog/agentic-evals#step-6-run-it-and-read-the-traces">图表依据 ↗</a></p>
-<h4>5 分钟 · 公开可审查的部分，保护在用试题</h4>
+<h4>Thinking</h4>
+<p><strong>怎样让外部读者审查评测，同时保住在用试题？</strong></p>
 <p>不公开正式测试题，可以减少题目进入训练数据的风险，却也让外部人员无法逐题核查。作者建议按组件决定开放范围：发布任务设计方法、开发样例和评分方法，把仍在使用的测试题和答案分开保护。如果你在维护团队基准，可以先开放这些可复用材料，再为不宜公开的题目安排受控审查；保密不能代替验证。</p>
 <p><a href="https://huggingface.co/blog/agentic-evals#4-open-sourcing-an-evaluation-strategically">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://huggingface.co/blog/agentic-evals">阅读原文 · How to build and maintain an agentic evaluation ↗</a></p>
-</article><article><h2>哪些研发任务适合让代理独立完成？</h2>
-<p class="meta">研发自动化 · OpenAI · 原发于 2026-11-18</p>
+</details><p class="full"><a href="https://huggingface.co/blog/agentic-evals">阅读原文 ↗</a></p>
+</article><article><p class="meta"><strong>人机协作</strong>　2026-11-18　OpenAI</p>
+<h2>Research acceleration: The jagged frontier</h2>
 <p>OpenAI 的内部估计显示，代理独立完成训练监控任务的比例为 79%，编写推理与服务栈代码为 25%。两者分母都是研究员实际委派的任务。</p>
 <p><strong>推荐理由</strong>　如果正在挑选第一批委派任务，按工作类型拆开成功率，比按预计工时设一道统一门槛更有参考价值。</p>
-<details><summary>15 分钟深读 · 含原文选段</summary>
-<h4>3 分钟 · 近半数，指的是哪批任务</h4>
+<details><summary>深读 · 约 15 分钟</summary>
+<h4>Summary</h4>
+<p><strong>近半数，指的是哪批任务</strong></p>
 <p>OpenAI 按人类完成任务所需的预计工时，对交给代理的研发任务分组。2026 年 3 月至 10 月，两到四小时组的估计成功率从 23% 升到 46%，四到八小时组从 13% 升到 35%。成功指代理无需人工介入就完成任务，分母是各组已委派的任务。这不是全部研发工作的自动化比例，也不能直接换算成团队节省的工时。</p>
 <p><a href="https://openai.com/index/research-acceleration-jagged-frontier#:~:text=tasks%20estimated%20to%20require%20two%20to%20four%20hours">定位原文段落 ↗</a></p>
-<h4>7 分钟 · 监控训练和写服务栈不能一起算</h4>
+<p><strong>监控训练和写服务栈不能一起算</strong></p>
 <p>在同一观察窗口内，监控训练运行是否出问题的任务，估计有 79% 能由代理独立完成；编写推理与服务栈代码的任务只有 25%。两个比例各以相应类型的委派任务为分母。原文还提醒，即使预计工时相同，研究员挑来委派的任务也可能随时间变化，所以成功率上升不能全归功于模型变强。</p>
 <p><a href="https://openai.com/index/research-acceleration-jagged-frontier#tasks-delegated-to-models-and-success-rates">定位原文段落 ↗</a></p>
 <p><strong>各类委派任务的无人工介入成功率（2026 年 8 月 1 日至 10 月 18 日，估计）</strong></p>
@@ -109,19 +112,21 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 </tbody>
 </table>
 <p><a href="https://openai.com/index/research-acceleration-jagged-frontier#tasks-delegated-to-models-and-success-rates">图表依据 ↗</a></p>
-<h4>5 分钟 · 能帮忙实现，不等于能独立选题</h4>
-<p>两次模型发布中，后训练和安全监控受访者列举的关键想法都由人提出，模型协助实现。但在 GPT-6.2 Astra 的预训练中，有研究者说，自己提出的想法在采纳 Codex 建议的改动后才开始奏效。这些回顾来自少数关键贡献者，不能证明代理能独立选题。用于团队分工，可以让代理参与推敲和实现，仍由人决定哪些假设值得验证。</p>
+<h4>Thinking</h4>
+<p><strong>代理能独立实现想法后，团队该怎样验证它的选题能力？</strong></p>
+<p>在两次模型发布的访谈中，后训练和安全监控的关键想法都来自人，模型参与实现。预训练有一个例外值得琢磨：研究者先提出想法，采纳 Codex 的修改后才奏效。可以把团队试验分成提出假设、修改方案、完成实现三个环节，分别记录贡献。这能检验委派边界，也能避免把少数受访者的回顾推广到整个研发流程。</p>
 <p><a href="https://openai.com/index/research-acceleration-jagged-frontier#where-big-ideas-come-from">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://openai.com/index/research-acceleration-jagged-frontier">阅读原文 · Research acceleration: The jagged frontier ↗</a></p>
-</article><article><h2>8 亿参数的助手，适合把哪些工具搬到端侧？</h2>
-<p class="meta">端侧智能体 · QVAC · Hugging Face · 原发于 2026-11-11</p>
+</details><p class="full"><a href="https://openai.com/index/research-acceleration-jagged-frontier">阅读原文 ↗</a></p>
+</article><article><p class="meta"><strong>端侧智能体</strong>　2026-11-11　QVAC · Hugging Face</p>
+<h2>BotPsy: On-Device Personal Assistant with a Sub-Billion-Parameter Agentic Language Model</h2>
 <p>在作者的复杂工具任务中，BotPsy 从同尺寸基座的 17.9 分提高到 39.5 分（满分 100）。拆开任务看，多步检索仍是明显短板。</p>
 <p><strong>推荐理由</strong>　如果想把云端调用移到手机，这组分项实验能帮你从低风险的单次操作入手，再决定哪些多步流程值得迁移。</p>
-<details><summary>15 分钟深读 · 含原文选段</summary>
-<h4>3 分钟 · 小模型怎么学会用工具</h4>
+<details><summary>深读 · 约 15 分钟</summary>
+<h4>Summary</h4>
+<p><strong>小模型怎么学会用工具</strong></p>
 <p>查日历之类的操作不一定要交给云端大模型，难点是让小模型选对工具、填对参数，还知道何时不该调用。作者从 Qwen3.5-0.8B 出发，先用工具调用示例做监督微调，再让擅长工具使用、推理和指令遵循的三个教师模型提供逐词元反馈，补回微调后下滑的通用能力。两轮强化学习先用规则给工具名和参数打分，再加入更多可验证任务和多步工具操作。</p>
 <p><a href="https://huggingface.co/blog/qvac/botpsy#training-procedure-four-stages-three-types-of-feedback">定位原文段落 ↗</a></p>
-<h4>7 分钟 · 多步任务进步明显，但仍落后于单次调用</h4>
+<p><strong>多步任务进步明显，但仍落后于单次调用</strong></p>
 <p>作者把多轮对话或涉及多个工具的场景归为复杂任务。按场景汇总，BotPsy 得 39.5 分（满分 100），高于同尺寸基座的 17.9 分和 20 亿参数对照模型的 30.8 分。设备与系统管理这组复杂任务尤其直观：它从基座的 15 分提高到 46 分。这些分数不是实际设备上的任务成功率；在作者的测试中，多步任务得分仍低于单次调用。</p>
 <p><a href="https://huggingface.co/blog/qvac/botpsy#the-largest-gains-are-in-multi-step-tasks">定位原文段落 ↗</a></p>
 <p><strong>工具基准得分（满分 100；依次为 BotPsy、同尺寸基座、Qwen3.5-2B-Think）</strong></p>
@@ -148,9 +153,10 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 </tbody>
 </table>
 <p><a href="https://huggingface.co/blog/qvac/botpsy#tool-use--agents">图表依据 ↗</a></p>
-<h4>5 分钟 · 从低风险的只读操作试起</h4>
+<h4>Thinking</h4>
+<p><strong>哪些操作可以放心交给本地小模型？</strong></p>
 <p>作者推荐用英语处理低到中等难度的任务；印地语和俄语的指令遵循得分明显偏低。模型也不适合高风险自动决策，或涉及资金、个人信息和健康的敏感应用。工程上，建议先试点不涉及敏感数据的只读设备状态查询，只开放完成任务所需的工具。如果原型需要写入，先向用户展示将执行的操作，再请求确认。端侧运行不是放宽权限的理由。</p>
 <p><a href="https://huggingface.co/blog/qvac/botpsy#intended-use-and-limitations">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://huggingface.co/blog/qvac/botpsy">阅读原文 · BotPsy: On-Device Personal Assistant with a Sub-Billion-Parameter Agentic Language Model ↗</a></p>
+</details><p class="full"><a href="https://huggingface.co/blog/qvac/botpsy">阅读原文 ↗</a></p>
 </article>
-<footer><a href="index.html">最新一期</a><a href="#">回到顶部 ↑</a></footer></main></body></html>
+<footer><a href="index.html">最新一期</a><a href="codex-cli/agent-reading-2026-11-23.html">同日对照 · Codex CLI</a><a href="#">回到顶部 ↑</a></footer></main></body></html>

@@ -10,8 +10,7 @@
       "request_id": "3583714b-5a73-49fa-a542-1aa2a26e47f0",
       "note": "",
       "draft": {
-        "headline": "让同一个模型在编码框架里少走几步",
-        "topic": "编码代理训练",
+        "topic": "Harness 与训练",
         "overview": "在 Pi 编码框架里训练适配器后，同一基础模型在 51 道高难题上的一次通过率从 39.2% 升至 64.7%。换到业务自动化任务，收益落入测量噪声。",
         "reason": "团队的工具调用成本已经很高时，这篇文章能帮你估算，为固定编码框架训练适配器究竟值不值。",
         "blocks": [
@@ -28,7 +27,7 @@
             "evidence": "beat the base model under their own harness"
           },
           {
-            "title": "换任务也换框架，就重新测",
+            "title": "换掉框架后，还值得为同一个适配器付训练成本吗？",
             "body": "作者改用 AutomationBench 自带的代理循环，测试了 300 道业务自动化任务。以全部断言通过为准，合并版的一次通过率为 23.7%，基础版为 23.0%，没有显示出明确的迁移收益。选型时，建议先用未参与训练的自家任务，在同一框架内比较通过率和每题开销；如果任务类型和代理循环都要换，就别把编码基准上的收益算进预算。",
             "section": 23,
             "evidence": "the adapters stay close to the base model"
@@ -80,8 +79,7 @@
       "request_id": "6d232ff6-ddb4-41b5-8dc1-c7aa7d7dd9a9",
       "note": "",
       "draft": {
-        "headline": "Codex 的沙箱边界画在哪里",
-        "topic": "进程隔离",
+        "topic": "工具与执行",
         "overview": "Codex 默认允许修改工作区并阻止联网，却仍可能读到仓库外的敏感文件。接入外部工具时，还要确认它的启动命令是否也受沙箱约束。",
         "reason": "如果你的代理能运行 shell、访问密钥或接入 MCP 服务，这篇文章能帮你判断，哪些权限需要分别配置。",
         "blocks": [
@@ -98,7 +96,7 @@
             "evidence": "with writes limited to the npm cache"
           },
           {
-            "title": "同一套启动接口，不同的系统边界",
+            "title": "如何验证同一条权限规则在三种系统上都有效？",
             "body": "Codex 在三个平台上共用一套启动接口，但由各自的系统机制执行限制：macOS 用 Seatbelt，Linux 结合 bubblewrap 和系统调用过滤，Windows 正在兼容设备上转向 MXC。文章指出，Windows 在代理模式下会阻止直接连接外部主机，但宿主机的回环服务仍可访问。如果也要隔离本机开发服务，建议在目标系统上验证，别只检查外网是否被挡住。",
             "section": 39,
             "evidence": "Other local services remain reachable"
@@ -137,8 +135,7 @@
       "request_id": "87871d06-68de-4846-9ce8-ec0266a3cfca",
       "note": "",
       "draft": {
-        "headline": "网站认出了代理，怎样知道它在替谁办事？",
-        "topic": "网站身份与访问控制",
+        "topic": "身份与授权",
         "overview": "云端代理替多人访问网站，认出代理不等于知道它代表谁。网站可以按操作风险索取必要信息，在能区分账号时只限制涉事账号，而不是封掉整个代理。",
         "reason": "适合正在做账号风控的工程师。按代理封禁可能影响它服务的所有人，原文拆开了账号归属、请求签名和用户授权。",
         "blocks": [
@@ -155,7 +152,7 @@
             "evidence": "allows an Agent to sign its requests"
           },
           {
-            "title": "先把处置范围缩到账号",
+            "title": "一个账号违规时，封禁应该落在哪一层？",
             "body": "据 Cloudflare 介绍，客户已能按代理查看流量并设置访问规则。开通账号滥用防护早期访问的站点，还能在登录和注册时识别代理；某个账号被滥用时，可以用防火墙规则按用户哈希标识处置，不必封掉整个代理。落地时可先用这些信号缩小封禁范围；如果用户对付款提出争议，仍需另行确认授权，不能把识别出账号当成授权凭证。",
             "section": 11,
             "evidence": "a WAF rule on its Hashed User ID"

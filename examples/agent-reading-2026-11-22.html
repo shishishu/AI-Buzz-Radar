@@ -16,11 +16,11 @@ h1,h2,h4{line-height:1.35;text-wrap:pretty}
 h1{font:700 clamp(2.35rem,6vw,3.35rem)/1.2 "Songti SC","Noto Serif CJK SC",serif;letter-spacing:-.045em;margin:0 0 .45rem}
 .mast p,.meta,footer{font-size:.86rem;color:var(--muted)}.mast span{padding:0 .25rem}
 article{padding:1.65rem 0;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
-h2{font-size:clamp(1.32rem,3vw,1.68rem);margin:0 0 .26rem}p{margin:.52rem 0}
-.meta{margin:0 0 .8rem}.full{font-size:.88rem;margin-bottom:0}
+h2{font-size:clamp(1.45rem,3.6vw,2rem);margin:.18rem 0 .65rem;line-height:1.18;letter-spacing:-.025em}p{margin:.52rem 0}
+.meta{margin:0;color:#546475}.meta strong{color:var(--pine)}.full{font-size:.88rem;margin-bottom:0}
 article details{margin:.9rem 0 .65rem;background:#eff3ed;border-left:3px solid #91ad9f;padding:.6rem .95rem}
 article summary{width:fit-content;cursor:pointer;font-weight:650}
-h4{font-size:1.05rem;margin:1.2rem 0 .45rem}
+h4{font-size:1.16rem;color:var(--pine);margin:1.2rem 0 .45rem}h4:not(:first-of-type){border-top:1px solid var(--rule);padding-top:1rem}
 details p:has(>a:only-child){font-size:.85rem}
 table{width:100%;border-collapse:collapse;font-size:.93rem}
 td,th{padding:.36rem .55rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
@@ -39,15 +39,16 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 <a href="agent-reading-2026-11-22.html" aria-current="page">2026-11-22</a>
 <a href="agent-reading-2026-11-21.html">2026-11-21</a></nav></details></header>
 <div class="mast"><h1>Agent 系统日报</h1><p><time datetime="2026-11-22">2026 年 11 月 22 日</time> <span>·</span> 3 篇 <span>·</span> 1 分钟速览</p></div>
-<article><h2>一条错笔记，怎样带偏后面的会话？</h2>
-<p class="meta">智能体工程 · Anthropic Engineering · 原发于 2026-11-06</p>
+<article><p class="meta"><strong>上下文与记忆</strong>　2026-11-06　Anthropic Engineering</p>
+<h2>The components of agent memory</h2>
 <p>一条错误的地标笔记让 Claude 三次走回旧路。让它在后台翻查会话记录、改写笔记后，下一次运行终于穿过了山洞。</p>
 <p><strong>推荐理由</strong>　旧笔记反复把代理带回同一个错误时，值得先做日志回查。需要反复拼接多份文档的任务，则适合评估后台整理知识页的成本。</p>
-<details><summary>15 分钟深读 · 含原文选段</summary>
-<h4>3 分钟 · 记下验证过的规则</h4>
+<details><summary>深读 · 约 15 分钟</summary>
+<h4>Summary</h4>
+<p><strong>记下验证过的规则</strong></p>
 <p>在 CL-Bench 的数据库问答中，Claude 每答一题就会收到正确解答。下一题从新会话开始，但仍能读取同一个记忆目录。Sonnet 4.6 留下的是未经检验的错因猜测；Opus 5 则把验证过的规则、验证依据和踩过的坑一起写下来。这样的笔记不必复述整个过程，却能让新会话看清哪些经验可以直接用，哪些还需要验证。</p>
 <p><a href="https://www.anthropic.com/research/components-of-agent-memory#memory-can-be-a-prediction-about-what-the-future-will-need">定位原文段落 ↗</a></p>
-<h4>7 分钟 · 一条错笔记如何带偏导航</h4>
+<p><strong>一条错笔记如何带偏导航</strong></p>
 <p>在《宝可梦 红》里，Claude 把月见山入口旁的宝可梦中心误记在山的东侧，以为自己已经穿过山洞。在沿用错笔记的那次运行中，它三次跌回原路，最终没到下一座城。研究者让 Claude 另做一轮整理，也就是文中说的「做梦」：对照原始会话记录找出错误，改写笔记。用修正后的笔记重跑时，Claude 直接返回山洞，最终抵达华蓝市。</p>
 <p><a href="https://www.anthropic.com/research/components-of-agent-memory#dreaming-can-correct-memory">定位原文段落 ↗</a></p>
 <p><strong>月见山案例里的记忆修正</strong></p>
@@ -81,19 +82,21 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 </tbody>
 </table>
 <p><a href="https://www.anthropic.com/research/components-of-agent-memory#dreaming-can-build-new-memory-representations">图表依据 ↗</a></p>
-<h4>5 分钟 · 什么时候值得后台整理</h4>
+<h4>Thinking</h4>
+<p><strong>如果后台整理的算力只够检查一部分笔记，该先查哪些？</strong></p>
 <p>作者指出，边做边记能让笔记及时可用，却会分散智能体对当前任务的注意力；移到后台整理则要额外花算力，结果也未必赶得上下一次会话。工程上可以先保留可检索的会话记录，只把值得跨会话复用的经验写成笔记。需要控制维护成本时，可优先回查常被读取或容易过时的笔记，而不是每轮重查全部。文章没有给出通用的整理频率。</p>
 <p><a href="https://www.anthropic.com/research/components-of-agent-memory#thinking-backward-looking-forward">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://www.anthropic.com/research/components-of-agent-memory">阅读原文 · The components of agent memory ↗</a></p>
-</article><article><h2>98% 和 94%，够不够据此换模型？</h2>
-<p class="meta">AI 安全评估 · Anthropic Engineering · 原发于 2026-11-13</p>
+</details><p class="full"><a href="https://www.anthropic.com/research/components-of-agent-memory">阅读原文 ↗</a></p>
+</article><article><p class="meta"><strong>评测与可靠性</strong>　2026-11-13　Anthropic Engineering</p>
+<h2>Building strong safety evaluations</h2>
 <p>一次多轮安全评测里，两个模型的合宜回应率相差 4 个百分点。考虑抽样误差后，这组结果不足以排出高下。</p>
 <p><strong>推荐理由</strong>　适合负责上线评审的工程师。文章演示怎样把单一分数拆成逐轮评分、版本差值和置信区间。</p>
-<details><summary>15 分钟深读 · 含原文选段</summary>
-<h4>3 分钟 · 先定义什么叫应对得当</h4>
+<details><summary>深读 · 约 15 分钟</summary>
+<h4>Summary</h4>
+<p><strong>先定义什么叫应对得当</strong></p>
 <p>拒答率高，不代表模型更安全。比如用户透露自伤风险时，一味拒答反而可能漏掉提供支持的机会；更合适的回应要表达关切、避免讨论具体方法，并在恰当时机引导用户寻求人工支持。Anthropic 让领域专家针对不同风险制定评分规则，再逐轮检查对话。开头答得好不能抵消后续失误：只要有一轮应对不当，整段就不算通过。</p>
 <p><a href="https://www.anthropic.com/research/building-strong-safety-evaluations#measure-what-you-mean-to-measure">定位原文段落 ↗</a></p>
-<h4>7 分钟 · 差 4 个百分点，仍不能判高下</h4>
+<p><strong>差 4 个百分点，仍不能判高下</strong></p>
 <p>Anthropic 在 claude.ai 上用多轮对话测试模型能否始终妥善应对恋爱诈骗相关请求。以各模型的全部受测对话为分母，整段应对均合宜的比例，Claude Opus 5 为 98%，Opus 5.5 为 94%。两者相差 4 个百分点，但差异未达到统计显著性。作者没有据此判定哪个模型更好：这既不能证明旧版更安全，也不能证明两版表现相同。</p>
 <p><a href="https://www.anthropic.com/research/building-strong-safety-evaluations#report-statistics-fully">定位原文段落 ↗</a></p>
 <p><strong>评估设计取决于你想回答的问题</strong></p>
@@ -116,19 +119,21 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 </tbody>
 </table>
 <p><a href="https://www.anthropic.com/research/building-strong-safety-evaluations#match-the-design-to-the-question">图表依据 ↗</a></p>
-<h4>5 分钟 · 跑分前写好上线判断规则</h4>
+<h4>Thinking</h4>
+<p><strong>评测结果落在误差范围内时，团队依据什么决定上线？</strong></p>
 <p>如果你要用评估结果做上线决策，建议在跑分前写清主指标、要比较的版本、要单独报告的场景，以及多大的退步会触发复核。让两个版本跑同一批用例，每个用例重复运行，再根据同一用例上的分数差计算置信区间。上线评审时把差值和区间放在一起看；如果仍分不清实际差异和抽样波动，就先补测，不要把高分当作放行理由。</p>
 <p><a href="https://www.anthropic.com/research/building-strong-safety-evaluations#preregister">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://www.anthropic.com/research/building-strong-safety-evaluations">阅读原文 · Building strong safety evaluations ↗</a></p>
-</article><article><h2>把设计交给代理，谁来验证第一块电路板？</h2>
-<p class="meta">电子硬件设计 · Anthropic Research · 原发于 2026-11-09</p>
+</details><p class="full"><a href="https://www.anthropic.com/research/building-strong-safety-evaluations">阅读原文 ↗</a></p>
+</article><article><p class="meta"><strong>工具与执行</strong>　2026-11-09　Anthropic Research</p>
+<h2>Testing Claude on real-world electronics design</h2>
 <p>Claude 为三款设备画板、设计外壳并写固件，工程师装出的原型都能运行。样机仍需电气、热和制造验证。</p>
 <p><strong>推荐理由</strong>　当代理能调用 CAD 和设计规则检查器时，团队可以把首版设计交给它，把实物装配、测量和放行决定留给工程师。</p>
-<details><summary>15 分钟深读 · 含原文选段</summary>
-<h4>3 分钟 · 从一句需求到可装配样机</h4>
+<details><summary>深读 · 约 15 分钟</summary>
+<h4>Summary</h4>
+<p><strong>从一句需求到可装配样机</strong></p>
 <p>硬件设计不只是按数据手册把芯片接起来：元件放在哪儿决定铜线怎么走，电路板还要装进外壳，零件也得买得到、工厂也得做得出来。Anthropic 与 Diode 从简短需求起步，让 Claude Fable 5.2 为免提通话音箱、语音助手中枢和手持电子宠物设计电路板与外壳、编写固件并列出物料清单。Diode 装出三款样机，均无需修改电路就能运行。</p>
 <p><a href="https://www.anthropic.com/research/claude-electronics-design#:~:text=worked%20without%20any%20fixes%20to%20their%20circuitry">定位原文段落 ↗</a></p>
-<h4>7 分钟 · 先布高速线，再看基准差距</h4>
+<p><strong>先布高速线，再看基准差距</strong></p>
 <p>在语音助手中枢上，Fable 5.2 先布 USB 和以太网的差分线：控制每对铜线的间距，用小段折线补齐长度，让成对信号同时到达。Diode 的内部基准 PCB Gym 移除原布局，要求模型重摆元件、重画铜线。按满分计，Fable 5.2 得 69%，Fable 5 得 25%，相差 44 个百分点。这是布局布线得分，不是实板一次通过率。</p>
 <p><a href="https://www.anthropic.com/research/claude-electronics-design#reasoning-through-geometric-problems">定位原文段落 ↗</a></p>
 <p><strong>语音助手中枢：两类制造检查告警怎么处理</strong></p>
@@ -151,9 +156,10 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 </tbody>
 </table>
 <p><a href="https://www.anthropic.com/research/claude-electronics-design#designing-for-real-world-manufacturing">图表依据 ↗</a></p>
-<h4>5 分钟 · 样机能跑，不等于能量产</h4>
+<h4>Thinking</h4>
+<p><strong>从可运行样机到量产，哪些验证必须由工程师接手？</strong></p>
 <p>三款样机尚未做电气验证、天线调谐、热测试或认证，也不是按量产要求设计的。Claude 没有接入测试仪器或制造设备，实物制作和测试由 Diode 工程师完成。对软件团队，更稳妥的试法是让模型负责用于功能验证的首版设计，同时在排期里保留人工审板和台架测量。把样机能运行当作继续验证的起点，而不是投产的放行条件。</p>
 <p><a href="https://www.anthropic.com/research/claude-electronics-design#limitations-and-next-steps">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://www.anthropic.com/research/claude-electronics-design">阅读原文 · Testing Claude on real-world electronics design ↗</a></p>
+</details><p class="full"><a href="https://www.anthropic.com/research/claude-electronics-design">阅读原文 ↗</a></p>
 </article>
 <footer><a href="index.html">最新一期</a><a href="#">回到顶部 ↑</a></footer></main></body></html>
