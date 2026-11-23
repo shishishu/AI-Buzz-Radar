@@ -1,55 +1,126 @@
-# Agent 系统阅读清单 · 2026-11-22
+# Agent 系统日报 · 2026-11-22
 
-## The components of agent memory
+## 一条错笔记，怎样带偏后面的会话？
 
-2026-11-06 · Anthropic Engineering · 上下文与记忆
+智能体工程 · Anthropic Engineering · 原发于 2026-11-06
 
-**推荐理由**　帮助你决定哪些跨会话笔记可以直接复用，哪些会影响后续行动、应先回查原始日志再采信。
+一条错误的地标笔记让 Claude 三次走回旧路。让它在后台翻查会话记录、改写笔记后，下一次运行终于穿过了山洞。
 
-**1 分钟速览**　文章把记忆分成两步：执行时写下可能有用的笔记，后台再对照会话记录纠错。《宝可梦》案例中，错误的地标笔记让 Claude 三次跌回旧路线；核对记录并改写后，Claude 穿过月见山，抵达下一座城市。这个案例展示了错误如何跨会话延续，但不能据此估算普遍收益；定期复查也有算力成本。
+**推荐理由**　旧笔记反复把代理带回同一个错误时，值得先做日志回查。需要反复拼接多份文档的任务，则适合评估后台整理知识页的成本。
 
-原文依据 · Dreaming can correct memory · “The transcript gave Claude a ground truth to validate its memory against.”
+### 15 分钟深读 · 含原文选段
 
-**1 小时深读**
+#### 3 分钟 · 记下验证过的规则
 
-- 15 分钟 · 读《Dreaming can correct memory》并对照图 7，画出从错误地标笔记、误判当前位置到重复走错路的因果链。
-- 20 分钟 · 读《Thinking backward, looking forward》，比较即时写入、后台整理和直接检索原始记录，分别标出它们在信息可用性、算力和纠错上的取舍。
-- 25 分钟 · 实作：在一个跨会话的文档整理任务中植入一条过时笔记，对比无笔记、直接复用、回查日志后复用三组的完成率与额外耗时。
+在 CL-Bench 的数据库问答中，Claude 每答一题就会收到正确解答。下一题从新会话开始，但仍能读取同一个记忆目录。Sonnet 4.6 留下的是未经检验的错因猜测；Opus 5 则把验证过的规则、验证依据和踩过的坑一起写下来。这样的笔记不必复述整个过程，却能让新会话看清哪些经验可以直接用，哪些还需要验证。
 
-[阅读原文](https://www.anthropic.com/research/components-of-agent-memory)
+[定位原文段落 ↗](https://www.anthropic.com/research/components-of-agent-memory#memory-can-be-a-prediction-about-what-the-future-will-need)
 
-## Building strong safety evaluations
+#### 7 分钟 · 一条错笔记如何带偏导航
 
-2026-11-13 · Anthropic Engineering · 评测与可靠性
+在《宝可梦 红》里，Claude 把月见山入口旁的宝可梦中心误记在山的东侧，以为自己已经穿过山洞。在沿用错笔记的那次运行中，它三次跌回原路，最终没到下一座城。研究者让 Claude 另做一轮整理，也就是文中说的「做梦」：对照原始会话记录找出错误，改写笔记。用修正后的笔记重跑时，Claude 直接返回山洞，最终抵达华蓝市。
 
-**推荐理由**　帮助你决定哪些评测项用程序判分，哪些需要模型裁判，以及更换裁判模型前应做哪些回归检查。
+[定位原文段落 ↗](https://www.anthropic.com/research/components-of-agent-memory#dreaming-can-correct-memory)
 
-**1 分钟速览**　核心建议是把总分拆成可独立判断的是非项：有明确真值时优先用程序检查，需要理解语境时再用模型裁判。文中用匹配“Yes”却漏掉后续拒绝的例子说明误判机制，并建议交换成对答案的顺序来检查位置偏差。该节给出了诊断方法，没有量化校准后的改进幅度。
+**月见山案例里的记忆修正**
 
-原文依据 · Carefully calibrate your grader · “Opt for a set of yes/no questions over a single overall score.”
+1. 错误地标进入笔记
+2. 新会话沿旧路折返
+3. 对照会话记录改写地标
+4. 重新进入山洞
 
-**1 小时深读**
+**内部文档问答：25 道题的评分项得分率**
 
-- 15 分钟 · 读《Keep measures internally valid》关于内部效度的定义，再读《Carefully calibrate your grader》的判分例子，区分你想测的行为和裁判实际识别的信号。
-- 20 分钟 · 精读《Carefully calibrate your grader》，把一条笼统的合格标准拆成三条是非题，为每题写一个正例和一个容易误判的边界反例。
-- 25 分钟 · 实作：用人工标注的小样本检查裁判，再交换成对答案的顺序重评；逐条记录翻判和分歧，找出需要改写的规则。
+| 对照项 | 原文要点 |
+| --- | --- |
+| 仅搜索原始文档 | 53% |
+| 仅查维基 | 最高 48% |
+| 搜索原始文档＋查维基 | 随维基扩充，从 54% 升至 61% |
 
-[阅读原文](https://www.anthropic.com/research/building-strong-safety-evaluations)
+[图表依据 ↗](https://www.anthropic.com/research/components-of-agent-memory#dreaming-can-build-new-memory-representations)
 
-## Testing Claude on real-world electronics design
+#### 5 分钟 · 什么时候值得后台整理
 
-2026-11-09 · Anthropic Research · 工具与执行
+作者指出，边做边记能让笔记及时可用，却会分散智能体对当前任务的注意力；移到后台整理则要额外花算力，结果也未必赶得上下一次会话。工程上可以先保留可检索的会话记录，只把值得跨会话复用的经验写成笔记。需要控制维护成本时，可优先回查常被读取或容易过时的笔记，而不是每轮重查全部。文章没有给出通用的整理频率。
 
-**推荐理由**　帮助你判断面对高重复的工具调用，是继续用现成接口逐步操作，还是投入时间编写专用工具，并把结果交给独立检查。
+[定位原文段落 ↗](https://www.anthropic.com/research/components-of-agent-memory#thinking-backward-looking-forward)
 
-**1 分钟速览**　KiCad 的现有接口每次只布一条线。面对一个 100 针连接器的长走线，Claude 花约半小时写了网格寻路工具，之后每条长走线约需一秒，还调整了敏感走线周边的间距。这里展示的是布线子任务的执行效率，不是整板已通过验证；三台设备仍是原型，尚未完成电气验证。
+[阅读原文 · The components of agent memory ↗](https://www.anthropic.com/research/components-of-agent-memory)
 
-原文依据 · Using software and documentation · “a router that could lay each long track in roughly a second.”
+## 98% 和 94%，够不够据此换模型？
 
-**1 小时深读**
+AI 安全评估 · Anthropic Engineering · 原发于 2026-11-13
 
-- 15 分钟 · 读《Using software and documentation》的布线案例，分开记录逐条指定端点的操作成本、自建工具的开发成本和新增间距约束的修改成本。
-- 15 分钟 · 读《Limitations and next steps》，列出原型尚未通过的验证项目，区分布线完成和硬件可交付各自需要的证据。
-- 30 分钟 · 实作：用带障碍和保留间距的玩具网格比较手动逐条寻路与批量寻路；把编写时间计入总耗时，并用独立检查器统计违规路径。
+一次多轮安全评测里，两个模型的合宜回应率相差 4 个百分点。考虑抽样误差后，这组结果不足以排出高下。
 
-[阅读原文](https://www.anthropic.com/research/claude-electronics-design)
+**推荐理由**　适合负责上线评审的工程师。文章演示怎样把单一分数拆成逐轮评分、版本差值和置信区间。
+
+### 15 分钟深读 · 含原文选段
+
+#### 3 分钟 · 先定义什么叫应对得当
+
+拒答率高，不代表模型更安全。比如用户透露自伤风险时，一味拒答反而可能漏掉提供支持的机会；更合适的回应要表达关切、避免讨论具体方法，并在恰当时机引导用户寻求人工支持。Anthropic 让领域专家针对不同风险制定评分规则，再逐轮检查对话。开头答得好不能抵消后续失误：只要有一轮应对不当，整段就不算通过。
+
+[定位原文段落 ↗](https://www.anthropic.com/research/building-strong-safety-evaluations#measure-what-you-mean-to-measure)
+
+#### 7 分钟 · 差 4 个百分点，仍不能判高下
+
+Anthropic 在 claude.ai 上用多轮对话测试模型能否始终妥善应对恋爱诈骗相关请求。以各模型的全部受测对话为分母，整段应对均合宜的比例，Claude Opus 5 为 98%，Opus 5.5 为 94%。两者相差 4 个百分点，但差异未达到统计显著性。作者没有据此判定哪个模型更好：这既不能证明旧版更安全，也不能证明两版表现相同。
+
+[定位原文段落 ↗](https://www.anthropic.com/research/building-strong-safety-evaluations#report-statistics-fully)
+
+**评估设计取决于你想回答的问题**
+
+| 对照项 | 原文要点 |
+| --- | --- |
+| 想知道模型怎么答 | 用观察性设计比较表现；分数不同不说明原因。 |
+| 想知道改动有没有用 | 用同一模型做对照；一次只改变一个变量，例如是否启用某条系统提示。 |
+
+[图表依据 ↗](https://www.anthropic.com/research/building-strong-safety-evaluations#match-the-design-to-the-question)
+
+#### 5 分钟 · 跑分前写好上线判断规则
+
+如果你要用评估结果做上线决策，建议在跑分前写清主指标、要比较的版本、要单独报告的场景，以及多大的退步会触发复核。让两个版本跑同一批用例，每个用例重复运行，再根据同一用例上的分数差计算置信区间。上线评审时把差值和区间放在一起看；如果仍分不清实际差异和抽样波动，就先补测，不要把高分当作放行理由。
+
+[定位原文段落 ↗](https://www.anthropic.com/research/building-strong-safety-evaluations#preregister)
+
+[阅读原文 · Building strong safety evaluations ↗](https://www.anthropic.com/research/building-strong-safety-evaluations)
+
+## 把设计交给代理，谁来验证第一块电路板？
+
+电子硬件设计 · Anthropic Research · 原发于 2026-11-09
+
+Claude 为三款设备画板、设计外壳并写固件，工程师装出的原型都能运行。样机仍需电气、热和制造验证。
+
+**推荐理由**　当代理能调用 CAD 和设计规则检查器时，团队可以把首版设计交给它，把实物装配、测量和放行决定留给工程师。
+
+### 15 分钟深读 · 含原文选段
+
+#### 3 分钟 · 从一句需求到可装配样机
+
+硬件设计不只是按数据手册把芯片接起来：元件放在哪儿决定铜线怎么走，电路板还要装进外壳，零件也得买得到、工厂也得做得出来。Anthropic 与 Diode 从简短需求起步，让 Claude Fable 5.2 为免提通话音箱、语音助手中枢和手持电子宠物设计电路板与外壳、编写固件并列出物料清单。Diode 装出三款样机，均无需修改电路就能运行。
+
+[定位原文段落 ↗](https://www.anthropic.com/research/claude-electronics-design#:~:text=worked%20without%20any%20fixes%20to%20their%20circuitry)
+
+#### 7 分钟 · 先布高速线，再看基准差距
+
+在语音助手中枢上，Fable 5.2 先布 USB 和以太网的差分线：控制每对铜线的间距，用小段折线补齐长度，让成对信号同时到达。Diode 的内部基准 PCB Gym 移除原布局，要求模型重摆元件、重画铜线。按满分计，Fable 5.2 得 69%，Fable 5 得 25%，相差 44 个百分点。这是布局布线得分，不是实板一次通过率。
+
+[定位原文段落 ↗](https://www.anthropic.com/research/claude-electronics-design#reasoning-through-geometric-problems)
+
+**语音助手中枢：两类制造检查告警怎么处理**
+
+| 对照项 | 原文要点 |
+| --- | --- |
+| 需要修改 | 6 处阻焊窄条低于工艺限值：扩大阻焊开窗，不移动元件。 |
+| 可以保留 | 检查器把两处地之间的连接标为错误：连接是有意设计，予以保留。 |
+
+[图表依据 ↗](https://www.anthropic.com/research/claude-electronics-design#designing-for-real-world-manufacturing)
+
+#### 5 分钟 · 样机能跑，不等于能量产
+
+三款样机尚未做电气验证、天线调谐、热测试或认证，也不是按量产要求设计的。Claude 没有接入测试仪器或制造设备，实物制作和测试由 Diode 工程师完成。对软件团队，更稳妥的试法是让模型负责用于功能验证的首版设计，同时在排期里保留人工审板和台架测量。把样机能运行当作继续验证的起点，而不是投产的放行条件。
+
+[定位原文段落 ↗](https://www.anthropic.com/research/claude-electronics-design#limitations-and-next-steps)
+
+[阅读原文 · Testing Claude on real-world electronics design ↗](https://www.anthropic.com/research/claude-electronics-design)

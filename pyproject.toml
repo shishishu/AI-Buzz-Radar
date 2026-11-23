@@ -12,6 +12,7 @@ dependencies = [
     "beautifulsoup4>=4.12,<5",
     "flask>=3.1,<4",
     "gunicorn>=23,<27",
+    "markdown-it-py>=3,<5",
     "openai>=2.30,<4",
     "pydantic>=2.10,<3",
     "python-dotenv>=1,<2",

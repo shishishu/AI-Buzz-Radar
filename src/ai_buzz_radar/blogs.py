@@ -117,11 +117,13 @@ def listings(source: Source, data: bytes) -> list[Candidate]:
     return rows
 
 
-def discover(day: date, days: int, loader=fetch) -> tuple[list[Candidate], list[str]]:
+def discover(
+    day: date, days: int, loader=fetch, sources=SOURCES
+) -> tuple[list[Candidate], list[str]]:
     start = day - timedelta(days=days - 1)
     by_url = {}
     warnings = []
-    for source in SOURCES:
+    for source in sources:
         try:
             rows = listings(source, loader(source.index))
         except (OSError, ValueError, TypeError, ElementTree.ParseError) as err:
@@ -134,7 +136,7 @@ def discover(day: date, days: int, loader=fetch) -> tuple[list[Candidate], list[
                     by_url[item.url] = item
                 elif len(item.description) > len(old.description):
                     by_url[item.url] = replace(old, description=item.description)
-    if len(warnings) == len(SOURCES):
+    if len(warnings) == len(sources):
         raise RuntimeError("; ".join(warnings))
     return sorted(
         by_url.values(), key=lambda item: (item.published, item.title), reverse=True

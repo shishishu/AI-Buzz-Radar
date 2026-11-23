@@ -140,6 +140,17 @@ def main(argv: list[str] | None = None) -> int:
         type=parse_budget,
         default=os.getenv("RADAR_BUDGET_USD", str(DEFAULT_BUDGET_USD)),
     )
+    edition = commands.add_parser("edition", help="Publish a three-article Agent Systems edition")
+    edition.add_argument("--day", type=date.fromisoformat)
+    edition.add_argument("--daily", action="store_true", help="Run a daily edition worker")
+    edition.add_argument("--hour", type=int, default=21, help="Publication hour in Asia/Shanghai")
+    edition.add_argument("--output", type=Path, default=Path("examples"))
+    edition.add_argument(
+        "--pick", action="append", default=[], help="Reviewed source URL (supply three)"
+    )
+    edition.add_argument(
+        "--budget-usd", type=parse_budget, default=os.getenv("RADAR_BUDGET_USD", "1")
+    )
     daily = commands.add_parser("daily", parents=[generation], help="Refresh the feed daily")
     daily.add_argument("--hour", type=int, default=21, help="Hour in Asia/Shanghai (default: 21)")
     show = commands.add_parser("show", help="Print saved feed items as JSON")
@@ -175,6 +186,37 @@ def main(argv: list[str] | None = None) -> int:
                 [item.model_dump(mode="json") for item in items], ensure_ascii=False, indent=2
             )
         )
+        return 0
+
+    if args.command == "edition":
+        from ai_buzz_radar.editions import generate
+
+        today = datetime.now(TIMEZONE).date()
+        day = args.day or today
+        if day > today:
+            parser.error("Cannot publish a future edition")
+        if args.daily and (args.day or args.pick or not 0 <= args.hour <= 23):
+            parser.error("--daily uses today's date, automatic selection and an hour from 0 to 23")
+        if args.daily:
+            last_attempt = None
+            with open_client() as client:
+                while True:
+                    now = datetime.now(TIMEZONE)
+                    if now.hour >= args.hour and now.date() != last_attempt:
+                        last_attempt = now.date()
+                        try:
+                            generate(client, store, args.budget_usd, last_attempt, args.output)
+                        except (APIError, OSError, ValueError, RuntimeError) as err:
+                            logger.error("Edition %s: %s", last_attempt, describe_error(err))
+                    sleep(60)
+        try:
+            existing = (args.output / "editions" / f"{day}.json").exists()
+            with nullcontext() if existing else open_client() as client:
+                edition = generate(client, store, args.budget_usd, day, args.output, args.pick)
+            print(args.output / f"agent-reading-{edition.day}.html")
+        except (APIError, OSError, ValueError, RuntimeError) as err:
+            logger.error("%s", describe_error(err))
+            return 1
         return 0
 
     if args.command == "blogs":

@@ -312,7 +312,7 @@ class RequestTrace(Record):
 
     @property
     def opened_pages(self) -> list[str]:
-        return [
+        return [r["url"] for r in self.blog_reads if "url" in r] + [
             item["action"]["url"]
             for item in self.web_actions
             if item["status"] == "completed"

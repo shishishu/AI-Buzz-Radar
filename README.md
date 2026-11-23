@@ -1,22 +1,36 @@
 # AI Buzz Radar
 
-个人 Agent 系统博客阅读清单。命令行直接使用 Responses API，模型按需查询候选文章的目录和段落，输出带原文依据的 1 分钟速览与 1 小时深读路线。 [查看真实样例](examples/agent-reading-2026-11-22.md)
+面向程序员的 Agent 系统日报。每期三篇技术文章，可在首页用一分钟扫读结论和推荐理由，再逐篇展开约十五分钟的深读。原文定位链接、对照表和完整原文放在相应文章下。[打开最新日报](examples/index.html)
 
-## Agent 系统博客 MVP
+## 运行日报
 
-需要 Python 3.12、uv 和现有的 `OPENAI_API_KEY`。默认检查 Anthropic Engineering、Anthropic Research 和 Lil’Log 当前索引里近 30 个自然日的发布，根据原文链接去重。
+需要 Python 3.12 和 uv。仓库附有可离线浏览的 Markdown、HTML 和结构化存档。只查看日报无需 API Key。
 
 ```bash
 uv sync --locked --python 3.12
-uv run --locked radar blogs --days 30 --budget-usd 1.00
+python3 -m http.server 8765 --bind 127.0.0.1 --directory examples
+```
+
+浏览器打开 [本地日报](http://127.0.0.1:8765/)。右上角的「往期日报」可按日期切换。页面、样式和表格均支持离线打开。原文定位优先使用出版方的章节锚点，缺少锚点时使用浏览器文本片段。
+
+### 生成与存档
+
+```bash
+uv run --locked radar edition --day 2026-11-23 --output examples --budget-usd 4
+uv run --locked radar edition --daily --hour 21 --output examples --budget-usd 4
+uv run --locked radar usage
 uv run --locked radar request REQUEST_ID
 ```
 
-阅读清单写到标准输出，可重定向成 Markdown。日志和本次 request_id 写到标准错误。检索日期可用 `--day YYYY-MM-DD` 指定，历史结果受来源当前索引覆盖范围限制。来源和允许读取的文章路径在 `blogs.py` 的 `SOURCES` 中配置。
+第一条命令生成指定日期的一期，默认日期为上海当地当天。已存档日期可离线重新渲染。第二条启动持续运行的日报进程，默认北京时间 21:00 出刊。预算是同一 SQLite 账本的累计美元上限，跨日期、跨命令共享。浏览和重新渲染不产生 API 消耗。
 
-按原发布日期过滤后，模型优先挑选与 Agent 系统直接相关、有具体机制、对照实验、失败分析或技术综述的文章，可选 0–3 篇。程序验证引用来自实际读取的段落、没有重复入选，以及每条路线合计 60 分钟。是否切题、结论是否涵盖原文限制仍需阅读者评估。
+来源包括 Anthropic Engineering、Anthropic Research、Lil’Log、Hugging Face、OpenAI 和 Cloudflare 的一手文章。程序读取各来源当前索引中的日期和标题，按日报日期截断。Responses API 根据技术相关性、机制、实验及失败分析给出候选顺序，优先采用近 30 天、从未收录的文章。可从近 90 天候选和历史已核实文章补读，页面会标记超窗或上次收录日期。冷启动时若没有三篇合格原文，保留原版首页，返回生成失败。回溯旧日期时，当前索引可能无法完整重建当天的候选池。
 
-每次运行最多四轮 Responses 请求，共用原有 SQLite 账本和累计预算。每轮保存输入、响应、工具调用与返回的原文、token、估算成本和时延。只产生工具调用的轮次没有可见正文首 token，TTFT 和 TPOT 为空。没有新候选时记录空清单，不调用模型。
+编辑可用三个 `--pick URL` 指定当期选题，仍需通过来源、日期、原文证据和数量校验。每篇由 `gpt-6.2-sol` 的 `high` 推理生成，三段解读分别核验原文摘录，证据通过才发布整期。图表由原文重新整理。档案目录 `editions/YYYY-MM-DD.json` 内含每篇的请求 ID。旁边的 Markdown 是正文，HTML 由同一份 Markdown 转换。账本记录实际模型输入、响应、原文页、token、缓存读写、TTFT、TPOT 和估算费用。
+
+### 早期阅读清单实验
+
+`radar blogs` 保留早期多轮工具调用的 Markdown 对照实验，使用 Anthropic 和 Lil’Log 目录。每日三篇 HTML 的入口是 `radar edition`。
 
 ## Product Hunt 本地网页
 
