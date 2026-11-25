@@ -12,20 +12,43 @@
 </div>{% if compare %}<a href="{{ compare[0] }}" data-follow-language data-en="Compare editions · {{ compare[1] }}">同日对照 · {{ compare[1] }}</a>{% endif %}<a href="#" data-en="Back to top ↑">回到顶部 ↑</a></footer></main>
 {% if has_original_images %}
 <dialog class="image-viewer" aria-label="原图" data-en-label="Original figure">
-<form method="dialog"><button autofocus data-en="Close figure">关闭原图</button></form>
+<form method="dialog"><button type="button" class="original-size" data-en="Original size" hidden>原始尺寸</button><button autofocus data-en="Close figure">关闭原图</button></form>
 <div class="image-viewport"><img alt=""></div>
 </dialog>
 <script>
+const viewer = document.querySelector(".image-viewer");
+const viewport = viewer.querySelector(".image-viewport");
+const full = viewport.querySelector("img");
+const originalSize = viewer.querySelector(".original-size");
+
+function centerOnFigure(x, y) {
+  viewport.scrollTo(full.offsetWidth * x - viewport.clientWidth / 2,
+                    full.offsetHeight * y - viewport.clientHeight / 2);
+}
+
 document.querySelector("main").addEventListener("click", event => {
   const button = event.target.closest(".enlarge-image");
   if (!button) return;
-  const viewer = document.querySelector(".image-viewer");
   const thumbnail = button.querySelector("img");
-  const full = viewer.querySelector("img");
+  const rect = thumbnail.getBoundingClientRect();
+  const readingWidth = Math.min(thumbnail.naturalWidth,
+                                Math.max(rect.width * 2, document.documentElement.clientWidth * 0.9));
   full.src = thumbnail.currentSrc;
   full.alt = thumbnail.alt;
+  full.style.aspectRatio = thumbnail.naturalWidth + " / " + thumbnail.naturalHeight;
+  full.style.width = readingWidth + "px";
+  originalSize.hidden = readingWidth >= thumbnail.naturalWidth;
   viewer.showModal();
-  full.parentElement.scrollTo(0, 0);
+  centerOnFigure(event.detail ? (event.clientX - rect.left) / rect.width : 0.5,
+                 event.detail ? (event.clientY - rect.top) / rect.height : 0);
+});
+originalSize.addEventListener("click", () => {
+  const x = (viewport.scrollLeft + viewport.clientWidth / 2) / full.offsetWidth;
+  const y = (viewport.scrollTop + viewport.clientHeight / 2) / full.offsetHeight;
+  full.style.width = full.naturalWidth + "px";
+  originalSize.hidden = true;
+  viewer.querySelector("[autofocus]").focus();
+  centerOnFigure(x, y);
 });
 </script>
 {% endif %}

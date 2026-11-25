@@ -28,7 +28,13 @@ figure{margin:1.25rem 0 1.5rem;padding:1rem 0 .75rem;border-block:1px solid var(
 figure img{display:block;width:auto;height:auto;max-width:min(100%,25rem);max-height:min(18rem,36vh);max-height:min(18rem,36svh);margin:0 auto}
 figcaption{margin:.85rem auto 0;font-size:.9375rem;line-height:1.55;color:var(--muted)}
 figcaption strong{color:var(--ink)}
-.publisher-figure img{max-width:100%}
+/* Size each original from its intrinsic proportions. Give tall figures a height
+   budget, with a floor so a short landscape screen can scroll a legible figure. */
+.publisher-figure img{
+  max-width:100%;
+  max-height:clamp(26rem,80vh,44rem);
+  max-height:clamp(26rem,80svh,44rem)
+}
 .enlarge-image{display:block;width:fit-content;max-width:100%;margin:0 auto;border:0;background:transparent;padding:0;cursor:zoom-in}
 .enlarge-image:focus-visible{outline:2px solid var(--pine);outline-offset:4px}
 .image-viewer{padding:0;border:1px solid var(--rule);max-width:calc(100vw - 1rem);background:white}
