@@ -42,10 +42,10 @@ Restart=on-failure
 RestartSec=15min
 """
     timer = f"""[Unit]
-Description=Publish the Agent developer edition daily at 21:00 Asia/Shanghai
+Description=Publish the Agent developer edition daily at 09:00 Asia/Shanghai
 
 [Timer]
-OnCalendar=*-*-* 21:00:00 Asia/Shanghai
+OnCalendar=*-*-* 09:00:00 Asia/Shanghai
 AccuracySec=1s
 Persistent=true
 Unit={NAME}.service

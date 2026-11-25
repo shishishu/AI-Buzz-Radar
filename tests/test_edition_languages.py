@@ -29,9 +29,12 @@ class ReadingLanguageTest(unittest.TestCase):
         self.assertFalse(page.footer.select('a[href="index.html"]'))
         self.assertNotIn("最新一期", page.footer.get_text())
         self.assertEqual(
-            page.footer.select_one('[data-en="Editor: Mr. Tree with GPT"]').get_text(),
+            page.footer.select_one('[data-en="Edited by Mr. Tree & GPT"]').get_text(),
             "编辑：树先生 & GPT",
         )
+        self.assertIsNotNone(issue.updated_at)
+        self.assertEqual(page.footer.time["datetime"], issue.updated_at.isoformat())
+        self.assertIn("UTC+8", page.footer.time.get_text())
         english_cards = json.loads(page.select_one("script#english-cards").string)
         for article, zh, html in zip(
             issue.articles, page.select("article"), english_cards, strict=True

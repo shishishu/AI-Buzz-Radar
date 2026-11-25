@@ -2,12 +2,13 @@
 
 import argparse
 import json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from uuid import uuid4
 
 from pydantic import Field
 
+from ai_buzz_radar.agent import TIMEZONE
 from ai_buzz_radar.blogs import fetch
 from ai_buzz_radar.codex_cli import run_cli as run_structured_cli
 from ai_buzz_radar.editions import (
@@ -164,7 +165,9 @@ def compare(folder, day, store, traces):
         a.note = exception_note(day, a, history)
         a.note_en = exception_note(day, a, history, lang="en")
         articles.append(a)
-    edition = Edition(day=day, ranking_request_id=ranking_id, articles=articles)
+    edition = Edition(
+        day=day, ranking_request_id=ranking_id, articles=articles, updated_at=datetime.now(TIMEZONE)
+    )
     with store.run_lock():
         atomic(output / "editions" / f"{day}.json", edition.model_dump_json(indent=2))
         publish(output, archive(output))

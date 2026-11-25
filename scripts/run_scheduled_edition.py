@@ -8,11 +8,12 @@ from pathlib import Path
 
 from ai_buzz_radar.agent import TIMEZONE
 from ai_buzz_radar.cli import main as radar
+from ai_buzz_radar.pages import publish_pages
 from ai_buzz_radar.selection_log import selection_log_path, selection_summary_ready
 
 
 def scheduled_day(now):
-    return (now.astimezone(TIMEZONE) - timedelta(hours=21)).date()
+    return (now.astimezone(TIMEZONE) - timedelta(hours=9)).date()
 
 
 def matching_record(edition, log, day):
@@ -62,7 +63,7 @@ def publication_complete(page, log, record):
     )
 
 
-def run(output, now):
+def run(output, now, *, publisher=None):
     day = scheduled_day(now)
     today = now.astimezone(TIMEZONE).date()
     if day < today and (output / "editions" / f"{today}.json").is_file():
@@ -72,25 +73,23 @@ def run(output, now):
     log = selection_log_path(output, day)
     page = output / f"agent-reading-{day}.html"
     record = matching_record(edition, log, day)
-    if publication_complete(page, log, record):
-        print(f"{day} is published with its selection record")
-        return 0
-
-    args = ["edition", "--engine", "codex", "--day", str(day), "--output", str(output)]
-    if edition.is_file() and not record:
-        # Reconstruct the selection by running it again and archiving the old edition.
-        args.append("--reselect")
-    result = radar(args)
-    if result:
-        return result
-    if not publication_complete(page, log, matching_record(edition, log, day)):
-        raise RuntimeError(
-            f"Incomplete local publication or selection report after publishing {day}"
-        )
+    if not publication_complete(page, log, record):
+        args = ["edition", "--engine", "codex", "--day", str(day), "--output", str(output)]
+        if edition.is_file() and not record:
+            args.append("--reselect")
+        result = radar(args)
+        if result:
+            return result
+        record = matching_record(edition, log, day)
+        if not publication_complete(page, log, record):
+            raise RuntimeError(f"Incomplete local publication or selection report for {day}")
+    print(f"{day} is published with its selection record", flush=True)
+    if publisher is not None:
+        publisher(output, day, record)
     return 0
 
 
 if __name__ == "__main__":
     project = Path(__file__).resolve().parents[1]
     os.chdir(project)
-    raise SystemExit(run(project / "examples", datetime.now(TIMEZONE)))
+    raise SystemExit(run(project / "examples", datetime.now(TIMEZONE), publisher=publish_pages))

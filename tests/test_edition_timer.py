@@ -11,13 +11,11 @@ from scripts import run_scheduled_edition as timer
 
 
 class EditionTimerTest(unittest.TestCase):
-    def test_due_date_uses_shanghai_2100_including_reboot_before_publication(self):
+    def test_due_date_uses_shanghai_0900_including_reboot_before_publication(self):
         self.assertEqual(
-            timer.scheduled_day(datetime(2026, 1, 1, 2, tzinfo=UTC)), date(2025, 12, 31)
+            timer.scheduled_day(datetime(2026, 1, 1, 0, 59, 59, tzinfo=UTC)), date(2025, 12, 31)
         )
-        self.assertEqual(
-            timer.scheduled_day(datetime(2026, 1, 1, 13, tzinfo=UTC)), date(2026, 1, 1)
-        )
+        self.assertEqual(timer.scheduled_day(datetime(2026, 1, 1, 1, tzinfo=UTC)), date(2026, 1, 1))
 
     def test_cached_edition_verify_repair_and_reselect(self):
         day = "2026-11-25"
@@ -47,7 +45,7 @@ class EditionTimerTest(unittest.TestCase):
             page.with_suffix(".md").write_text("edition")
             with patch.object(timer, "radar") as invoke:
                 # The day was published early; an early catch-up must keep it intact.
-                self.assertEqual(timer.run(output, now.replace(hour=4)), 0)
+                self.assertEqual(timer.run(output, now.replace(hour=0)), 0)
                 invoke.assert_not_called()
             report = log.with_suffix(".md")
             summary = report.read_bytes()

@@ -22,7 +22,7 @@ from bs4 import BeautifulSoup
 from jinja2 import Environment, PackageLoader, select_autoescape
 from markdown_it import MarkdownIt
 from markupsafe import Markup
-from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import AwareDatetime, ConfigDict, Field, PrivateAttr, model_validator
 
 from ai_buzz_radar.agent import TIMEZONE
 from ai_buzz_radar.blog_agent import call_round
@@ -234,6 +234,7 @@ class Article(Record):
 
 
 class Edition(Record):
+    updated_at: AwareDatetime | None = None
     ranking_request_id: str | None = None
     day: date
     articles: list[Article] = Field(min_length=3, max_length=3)
@@ -918,6 +919,7 @@ def generate(client, store, budget, day, folder, picks=(), loader=fetch, *, rese
                 )
                 if isinstance(client, CodexCLI):
                     client.mark_stage("publication")
+                edition.updated_at = datetime.now(TIMEZONE)
                 updated = [ed for ed in editions if ed.day != day] + [edition]
                 edition_file = output / "editions" / f"{day}.json"
                 atomic(edition_file, edition.model_dump_json(indent=2))
@@ -1188,6 +1190,7 @@ def publish(folder, editions, *, only_day=None):
             compare = (f"{prefix}/{stem.name}.html", "Responses API" if control else "Codex CLI")
         html = template.render(
             day=edition.day,
+            updated_at=edition.updated_at.astimezone(TIMEZONE) if edition.updated_at else None,
             style=style,
             cards=[html for _, html in cards],
             english_cards=english_cards,
