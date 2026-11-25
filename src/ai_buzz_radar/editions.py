@@ -1049,6 +1049,17 @@ def article_html(md, image_data=None, image_type=None, lang="zh"):
         figure.append(caption)
     for listing in soup.select("ol"):
         listing["class"] = ["process"]
+    summary_heading = soup.find("h3", string=card_label("内容摘要", lang))
+    details = soup.new_tag("details", attrs={"class": "article-details"})
+    toggle = soup.new_tag("summary")
+    for css, zh, en in (("more", "展开全文", "Read more"), ("less", "收起全文", "Show less")):
+        label = soup.new_tag("span", attrs={"class": css})
+        label.string = en if lang == "en" else zh
+        toggle.append(label)
+    details.append(toggle)
+    summary_heading.insert_before(details)
+    for node in list(details.next_siblings):
+        details.append(node.extract())
     return Markup(str(soup))
 
 
@@ -1098,10 +1109,14 @@ def render_card(folder, edition_day, index, article, selection, lang="zh"):
     return md, article_html(md, svg.encode(), "image/svg+xml", lang)
 
 
+def article_identity(url):
+    link = urlsplit(original_reading_url(url))
+    return link._replace(path=link.path.rstrip("/"), fragment="").geturl()
+
+
 def record_selection(history, url, day):
     """Classify each appearance using the previous calendar day and prior selections."""
-    link = urlsplit(original_reading_url(url))
-    key = link._replace(path=link.path.rstrip("/"), fragment="").geturl()
+    key = article_identity(url)
     previous, streak = history.get(key, (None, 0))
     if previous == day - timedelta(days=1):
         label, streak = "连续入选", streak + 1
@@ -1144,8 +1159,14 @@ def verify_publication(folder, edition, record, *, latest):
                 raise ValueError("The embedded figure differs from the verified publisher image")
         for card, lang in ((zh, "zh"), (en, "en")):
             labels = [card_label(label, lang) for label in ("推荐理由", "内容摘要", "延伸思考")]
-            if [h.get_text() for h in card.select("h3")] != labels or card.select_one("details"):
-                raise ValueError("A reading section is missing or collapsed")
+            details = card.select_one("details.article-details:not([open])")
+            if (
+                [h.get_text() for h in card.select("h3")] != labels
+                or details is None
+                or [h.get_text() for h in details.select("h3")] != labels[1:]
+                or not details.summary
+            ):
+                raise ValueError("Invalid disclosure or reading sections")
             links = [original_reading_url(article.url)]
             if lang == "zh" and article.translation_url:
                 links.append(article.translation_url)
@@ -1194,6 +1215,10 @@ def publish(folder, editions, *, only_day=None):
             style=style,
             cards=[html for _, html in cards],
             english_cards=english_cards,
+            article_keys=[
+                "article-" + hashlib.sha256(article_identity(a.url).encode()).hexdigest()[:24]
+                for a in edition.articles
+            ],
             has_original_images=any(a.original_image for a in edition.articles),
             compare=compare,
             engine="Codex CLI" if control else "Responses API",

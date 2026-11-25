@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Buzz Radar 版本演进 · v0.1—v1.0</title>
+<title>AI Buzz Radar 版本演进 · v0.1—v1.1</title>
 <style>
 :root {color-scheme:light;--paper:#fbfaf6;--ink:#172c28;--mute:#51645e;--green:#196749;--rule:#d6ded5;--tint:#edf3eb}
 * {box-sizing:border-box}
@@ -71,8 +71,8 @@ tfoot {background:var(--tint);font-weight:700}
 </style></head>
 <body><main class="wrap" id="top">
 <header class="cover"><p class="brand">AI Buzz Radar</p><h1>版本演进</h1>
-<div class="period">v0.1 — v1.0　·　2026 年 11 月 22—25 日</div>
-<p class="intro">最初的问题是“今天发布了哪些 AI 产品？”四天后，日报每天要回答的是“哪三篇一手材料，值得 Agent 开发者用来做决定？”以下按八次产品决策回溯编号。这些版本是事后标记的产品里程碑，日期按开发与讨论时间记。</p></header>
+<div class="period">v0.1 — v1.1　·　2026 年 11 月 22—25 日</div>
+<p class="intro">最初的问题是“今天发布了哪些 AI 产品？”四天后，日报每天要回答的是“哪三篇一手材料，值得 Agent 开发者用来做决定？”前八个里程碑按产品决策回溯编号，v1.1 起按实际改版续记。这些版本是事后标记的产品里程碑，日期按开发与讨论时间记。</p></header>
 <div class="layout"><aside><nav aria-label="版本目录"><div class="nav-title">版本目录</div><ol><li><a href="#v0-1"><span>v0.1</span>Product Hunt 新品</a></li>
 <li><a href="#v0-2"><span>v0.2</span>Agent 技术阅读</a></li>
 <li><a href="#v0-3"><span>v0.3</span>固定每日三篇</a></li>
@@ -80,7 +80,8 @@ tfoot {background:var(--tint);font-weight:700}
 <li><a href="#v0-5"><span>v0.5</span>双语与最新一期</a></li>
 <li><a href="#v0-6"><span>v0.6</span>算法研究员试选</a></li>
 <li><a href="#v0-7"><span>v0.7</span>开发者选稿</a></li>
-<li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li></ol></nav></aside>
+<li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li>
+<li><a href="#v1-1"><span>v1.1</span>阅读与反馈</a></li></ol></nav></aside>
 <div><details><summary>版本目录</summary><nav aria-label="手机版本目录"><ol><li><a href="#v0-1"><span>v0.1</span>Product Hunt 新品</a></li>
 <li><a href="#v0-2"><span>v0.2</span>Agent 技术阅读</a></li>
 <li><a href="#v0-3"><span>v0.3</span>固定每日三篇</a></li>
@@ -88,7 +89,8 @@ tfoot {background:var(--tint);font-weight:700}
 <li><a href="#v0-5"><span>v0.5</span>双语与最新一期</a></li>
 <li><a href="#v0-6"><span>v0.6</span>算法研究员试选</a></li>
 <li><a href="#v0-7"><span>v0.7</span>开发者选稿</a></li>
-<li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li></ol></nav></details>
+<li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li>
+<li><a href="#v1-1"><span>v1.1</span>阅读与反馈</a></li></ol></nav></details>
 <section id="v0-1" aria-labelledby="title-v0-1">
 <header><div class="meta"><b>v0.1</b><time datetime="2026-11-22">11 月 22 日</time></div><h2 id="title-v0-1">从 Product Hunt 找到值得看的 AI 新品</h2></header>
 <p>初版每期最多五条，附发布日期、变化、推荐理由和发布页。榜单里仅带 AI 标签的产品也会被召回，于是选稿改为检查日榜前 20 名的发布页，选取前三个能举证核心 AI 能力或实质更新的产品，保留原榜名次。</p>
@@ -142,6 +144,10 @@ tfoot {background:var(--tint);font-weight:700}
 <dl><div><dt>个性化与热度</dt><dd>曾考虑用 X、知乎和微信公众号的讨论发现有价值的文章。当前日报对所有读者采用相同选稿。早期试选用过 Hugging Face 点赞数作为发现论文的线索。</dd></div><div><dt>语音与读者 Agent</dt><dd>曾提出让用户直接听日报，或交给自己的 Agent 深读后反馈。目前已有 Markdown 和结构化 JSON，可作为后续接入材料。语音与面向读者 Agent 的专用分发接口仍在讨论阶段。</dd></div></dl>
 <p class="source"><b>仓库依据</b> <a href="../README.md">运行说明</a> · <a href="../src/ai_buzz_radar/editions.py">每日选稿与校验</a> · <a href="../scripts/install_edition_timer.py">定时器</a> · <a href="../scripts/run_scheduled_edition.py">定时出刊入口</a></p>
 <p class="source"><b>查阅说明</b> 11 月 24–25 日的多轮变更集中在主仓提交 <code>e8086eb</code>。文内所引文件按仓库相对位置链接，私有选稿记录需在留有当日数据的工作区打开。</p>
+</section>
+<section id="v1-1" aria-labelledby="title-v1-1">
+<header><div class="meta"><b>v1.1</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-1">先读推荐理由，再展开感兴趣的文章</h2></header>
+<p>三篇文章默认显示到推荐理由，各自可以展开阅读全文。读者可以为单篇文章或整份日报点爱心。页尾汇总日报的浏览量和点赞数，同一篇文章再次入选时沿用原文的累计点赞。</p>
 </section>
 <a class="end" href="#top">返回顶部 ↑</a></div></div></main>
 <script>

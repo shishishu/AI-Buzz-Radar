@@ -123,7 +123,7 @@ class EditionTest(unittest.TestCase):
                 page = BeautifulSoup(latest.decode(), "html.parser")
                 self.assertEqual(len(page.select("article figure > img")), 3)
                 self.assertEqual(len(page.select("article h3")), 9)
-                self.assertEqual(len(page.select("article > .full")), 3)
+                self.assertEqual(len(page.select("article details > .full")), 3)
                 self.assertFalse(page.select("nav a"))
                 self.assertEqual(
                     [tag.get_text() for tag in page.select("article .meta em")], ["首次入选"] * 3
@@ -242,6 +242,15 @@ class EditionTest(unittest.TestCase):
             self.assertIn("第 3 天", cards[0].get_text())
             self.assertNotIn("第 ", cards[1].get_text())
             first_page = folder / f"agent-reading-{DAY}.html"
+            prior = BeautifulSoup(first_page.read_bytes(), "html.parser")
+            shared_article = page.select("article")[0]  # article a appears on all three dates
+            self.assertEqual(
+                shared_article.select_one(".like")["data-counter"],
+                prior.article.select_one(".like")["data-counter"],
+            )
+            self.assertEqual(len({b["data-counter"] for b in page.select(".like")}), 4)
+            self.assertEqual(page.footer.select_one(".like")["data-counter"], "likes")
+            self.assertIsNotNone(page.footer.select_one("#views"))
             first_page.write_text("Already published")
             publish(folder, issues, only_day=issues[-1].day)
             self.assertEqual(first_page.read_text(), "Already published")
@@ -508,7 +517,8 @@ class EditionTest(unittest.TestCase):
             publish(folder, [issue])
             page = BeautifulSoup((folder / "index.html").read_text(), "html.parser")
             for article, card in zip(issue.articles, page.select("article"), strict=True):
-                self.assertIsNone(card.find("details"))
+                self.assertFalse(card.details.has_attr("open"))
+                self.assertIsNotNone(card.details.summary)
                 self.assertEqual(card.h2.find_next_sibling("h3").get_text(), "推荐理由")
                 figure = card.figure
                 self.assertEqual(figure.find_previous_sibling("h3").get_text(), "内容摘要")

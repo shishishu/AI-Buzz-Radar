@@ -50,3 +50,15 @@ figcaption strong{color:var(--ink)}
 .language-switch button:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
 
 .edition-credit{display:grid;gap:.2rem}
+.article-details{margin-top:.7rem}
+.article-details summary{width:fit-content;min-height:44px;align-content:center;color:var(--pine);cursor:pointer;font-weight:650}
+.article-details summary:focus-visible,.like:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
+.article-details .less,.article-details[open] .more{display:none}
+.article-details[open] .less{display:inline}
+.like{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-width:44px;min-height:44px;padding:0 .6rem;border:1px solid var(--rule);border-radius:.6rem;background:transparent;color:var(--muted);font:inherit;font-size:.9rem;font-variant-numeric:tabular-nums;cursor:pointer}
+.like:disabled{cursor:default}
+.like[aria-pressed=true]{color:#a33453}
+.like[aria-pressed=true] svg{fill:currentColor}
+article>.like{float:right;margin-left:.65rem}
+.engagement{display:flex;align-items:center;gap:1rem;font-variant-numeric:tabular-nums}
+#counter-status:not(:empty){padding-bottom:1rem;color:var(--muted);font-size:.875rem}
