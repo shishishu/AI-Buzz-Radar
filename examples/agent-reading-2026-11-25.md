@@ -4,15 +4,15 @@
 
 ## Fidelity Collapses with Table Size, Not Turn Count: Delivery Architecture in a Deployed Tool-Using Agent
 
-### 推荐理由
+### 核心看点
 
-为多轮查询智能体制定验收标准的工程师，可据此判断是否要按输入表的行数分档，逐档核对筛选结果。
+同样筛选下午起飞的航班，结果表从 5 行增至 100 行，Gemini 2.5 Flash 转述结果的满分率从 83% 降到 6%。改由工具直接交付结果，这组实验的 93 次运行全部答对。
 
 ### 内容摘要
 
-在机票查询实验中，让模型筛选并重述记录时，输入表越大，首次筛选就越容易答错。旁路方案把记录留在会话状态，让模型生成筛选参数，由工具执行筛选，再通过类型化通道交付结果行。
+作者固定六条航线的查询结果，每次只取表的前若干行。小表就是大表的开头，同一条筛选指令在每个表长、每条航线上各测三次。模型在第一轮筛选就出现了随表长增加而变多的错误。
 
-作者从六条航线同一舱等的冻结结果中各取前若干行，每次都只筛选下午起飞的航班。输入从 5 行增至 100 行时，Gemini 2.5 Flash 重述结果的满分率从 83% 降至 6%，旁路在整组实验的 93 次运行中均获满分。 [原文章节](https://arxiv.org/html/2611.00442v1#S5.SS1.SSS0.Px1)
+两条路径的区别在于谁交付记录：一条由模型筛选并重述航班；另一条把记录保存在会话里，由模型给出筛选条件，工具执行后直接返回匹配的行。 [原文章节](https://arxiv.org/html/2611.00442v1#S5.SS1.SSS0.Px1)
 
 ![随行数增加，橙色模型转述曲线下降，蓝色直接交付曲线保持在 100%。](figures/originals/677db8c639baf2bab57df4384d153ad562d49688a6e16a373f44c9ad9cb07281.png)
 
@@ -20,9 +20,9 @@
 
 ### 延伸思考
 
-实验同时引入了跨轮保存记录和绕过模型交付结果两项改动，只测出了两者的合计收益。 [原文章节](https://arxiv.org/html/2611.00442v1#Sx1.SS0.SSS0.Px4)
+直接交付方案同时改了两件事：跨轮保存记录，以及由工具返回结果。实验测到的是两者合起来的收益。 [原文章节](https://arxiv.org/html/2611.00442v1#Sx1.SS0.SSS0.Px4)
 
-可固定会话状态和筛选参数，按业务中常见的表长回放，对两条路径逐行核对记录及字段。若模型重述在常见的最大表上也能稳定达到验收标准，可暂缓引入旁路。
+如果你的智能体已经保存了工具结果，可以用同一份记录和筛选条件分别走两条交付路径，逐行核对。这样才能看出，仅换掉最后的转述步骤能挽回多少错误。
 
 [英文原文](https://arxiv.org/html/2611.00442v1)
 
@@ -30,17 +30,17 @@
 
 ## Inside the Codex sandbox
 
-### 推荐理由
+### 核心看点
 
-接入本地 MCP 服务的开发者可参考文中的记忆服务示例，判断哪些依赖可以提前备好，以及服务运行时还需要写入哪些目录。
+在 Codex 配置里接入本地 stdio MCP 服务，启动命令默认仍以当前用户的权限运行。OpenAI 用一个记忆服务演示了另一种配置：离线启动，只允许写入 npm 缓存和服务的数据目录。
 
 > 上次入选于 2026-11-21
 
 ### 内容摘要
 
-Codex 的命令沙箱也能约束本地 MCP 服务。在沙箱内启动服务后，所选配置对文件和网络访问的限制会由子进程继承。
+示例先创建记忆服务的数据目录，把固定版本的 npm 包存入缓存。接着用专用权限配置启动服务，让它从缓存加载依赖。
 
-作者先为记忆服务创建数据目录并缓存固定版本的 npm 包，再用 codex sandbox 按专用配置启动服务。在这些条件下，该服务可以离线启动，写入范围仅限于 npm 缓存和服务数据目录。 [定位原句](https://openai.com/en-US/index/inside-the-codex-sandbox/#:~:text=without%20network%20access%2C%20with%20writes%20limited%20to%20the%20npm%20cache%20and%20the%20server%E2%80%99s%20data%20directory)
+文件与网络限制会由子进程继承。这样即使服务通过 npx 启动，也能在禁网时读到所需的包，并在指定目录保存记忆。 [定位原句](https://openai.com/en-US/index/inside-the-codex-sandbox/#:~:text=without%20network%20access%2C%20with%20writes%20limited%20to%20the%20npm%20cache%20and%20the%20server%E2%80%99s%20data%20directory)
 
 ![流程图中，配置和管理员设定的约束共同确定会话权限配置。Codex 据此在 macOS、Linux 或 Windows 的沙箱中启动命令。子进程继承限制，可选的网络代理按域名规则筛选请求。](figures/originals/74f94b4b39f0ed4ee3ac375a02fef9debf378e8fde8f3e36db6d8c15258c4e88.webp)
 
@@ -48,9 +48,9 @@ Codex 的命令沙箱也能约束本地 MCP 服务。在沙箱内启动服务后
 
 ### 延伸思考
 
-对于配置文件中通过 stdio 接入的 MCP 服务，Codex 无法可靠推断它需要哪些文件或网络服务，因此不会自动将启动命令放入沙箱。 [原文章节](https://openai.com/en-US/index/inside-the-codex-sandbox/#example-sandboxing-an-mcp-server)
+Codex 无法从启动命令推断服务实际需要哪些文件或网络资源。同样能离线启动的两个服务，执行工具调用时可能需要不同的权限。 [原文章节](https://openai.com/en-US/index/inside-the-codex-sandbox/#example-sandboxing-an-mcp-server)
 
-建议先在禁网条件下测试启动和一次典型工具调用。若调用只有在特定域名可达时才成功，就为该服务配置代理，只放行该域名。
+配置自己的服务时，可以分开验证启动和一次典型调用。若只有调用失败，再核对它需要的目录或域名，比直接给整个服务放宽权限更有针对性。
 
 [英文原文](https://openai.com/en-US/index/inside-the-codex-sandbox/)　[官方中文译文](https://openai.com/zh-Hans-CN/index/inside-the-codex-sandbox/)
 
@@ -58,15 +58,15 @@ Codex 的命令沙箱也能约束本地 MCP 服务。在沙箱内启动服务后
 
 ## Building Evidence-Grounded Agent Memory with OpenWiki and Graphs
 
-### 推荐理由
+### 核心看点
 
-需要复核智能体答案出处的工程师，可参考文中对引用重合度的评测，判断是否值得为维基中的陈述建立通往原文段落的证据图。
+给智能体加一份维基，值不值取决于问题。在合成保险文档上，单段查找用关键词搜索同样准、还更快；遇到需要串联多份文档的问题，维基把准确性得分从 0.10 提到 0.52（满分 1）。
 
 ### 内容摘要
 
-在跨文档问答中，OpenWiki 把分散的条款关系整理成维基，让智能体答得更准。用证据图把维基中的陈述连到原文段落后，多次作答时引用的依据也更稳定。
+作者固定模型、指令和 111 份文档，把问题分成 80 道单段查找题和 50 道跨文档题，每题问三次，分别看答案得分和引用段落的重合度。
 
-作者用 111 份合成保险文档测试同一智能体，每题作答三次。在 50 道跨文档题上，准确性得分从关键词搜索的 0.10 升至使用维基的 0.52。相比单用维基，加入证据图后得分又提高了 27%，引用重合度翻倍。 [定位原句](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Accuracy%20rose%2027%25%2C%20citation%20consistency%20doubled)
+维基能帮智能体串起分散的条款，但同一道题可能引出不同依据。作者把维基中的陈述连到原文段落；在跨文档题上，得分从 0.52 升至 0.66，三次回答的引用重合度翻倍。 [定位原句](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Accuracy%20rose%2027%25%2C%20citation%20consistency%20doubled)
 
 ![原文四幅柱状图比较仅搜索、只用 wiki 及 wiki 加证据图的正确率、引用一致性、每个正确回答的成本和中位回答时间。](figures/originals/89f2c95cd73d5cdcf8e73fc98cc2ec6685f15155c795b866a54a4489cd86ec0c.png)
 
@@ -74,8 +74,8 @@ Codex 的命令沙箱也能约束本地 MCP 服务。在沙箱内启动服务后
 
 ### 延伸思考
 
-在单段查找题上，搜索和维基的得分接近，用时分别为 9 秒和 12 秒。文中每答对一题的成本只含检索与作答。 [定位原句](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=while%20latency%20increased%20from%209%20to%2012%20seconds)
+文中的每题成本只算检索与作答。最初编译 111 份文档另花了 4.15 美元，后来每新增一份约花 0.09 美元。 [定位原句](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=The%20analysis%20below%20excludes%20compilation%20and%20update%20costs)
 
-可按实际提问频率重放两类查询，把编译和更新费用摊入每道答对的题。若维基在跨文档题上仍能提高得分，且每答对一题的总成本低于搜索，就为这类任务启用共享维基。
+如果知识库更新频繁，可以按真实比例回放查找题和跨文档题，再把维护费用摊到每道答对的题上。这才是决定要不要长期维护维基的成本。
 
 [英文原文](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs)

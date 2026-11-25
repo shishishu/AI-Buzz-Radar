@@ -43,13 +43,13 @@ class ReadingLanguageTest(unittest.TestCase):
                 copy = article.localization
                 self.assertEqual(zh.h2.get_text(), article.title)
                 self.assertEqual(
-                    [h.get_text() for h in zh.select("h3")], ["推荐理由", "内容摘要", "延伸思考"]
+                    [h.get_text() for h in zh.select("h3")], ["核心看点", "内容摘要", "延伸思考"]
                 )
                 en = BeautifulSoup(html, "html.parser")
                 self.assertEqual(en.h2.get_text(), article.title)
                 self.assertEqual(
                     [h.get_text() for h in en.select("h3")],
-                    ["Why", "Summary", "Takeaways"],
+                    ["Highlight", "Summary", "Takeaways"],
                 )
                 text = en.get_text(" ", strip=True)
                 for value in (copy.topic_en, copy.reason_en, copy.summary_en, copy.thinking_en):

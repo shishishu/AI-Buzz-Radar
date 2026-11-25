@@ -515,7 +515,7 @@ class EditionTest(unittest.TestCase):
             for article, card in zip(issue.articles, page.select("article"), strict=True):
                 self.assertFalse(card.details.has_attr("open"))
                 self.assertIsNotNone(card.details.summary)
-                self.assertEqual(card.h2.find_next_sibling("h3").get_text(), "推荐理由")
+                self.assertEqual(card.h2.find_next_sibling("h3").get_text(), "核心看点")
                 figure = card.figure
                 self.assertEqual(figure.find_previous_sibling("h3").get_text(), "内容摘要")
                 self.assertEqual(figure.find_next_sibling("h3").get_text(), "延伸思考")
@@ -532,7 +532,7 @@ class EditionTest(unittest.TestCase):
                 self.assertIn(article.draft.reason, card.get_text())
                 self.assertTrue(article.draft.reason.strip())
                 self.assertEqual(
-                    [h.get_text() for h in card.select("h3")], ["推荐理由", "内容摘要", "延伸思考"]
+                    [h.get_text() for h in card.select("h3")], ["核心看点", "内容摘要", "延伸思考"]
                 )
                 self.assertNotIn("分钟速览", page.get_text())
                 self.assertEqual(
