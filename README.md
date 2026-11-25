@@ -105,6 +105,8 @@ uv run --locked radar show
 uv run --locked ruff check .
 uv run --locked ruff format --check .
 uv run --locked python -m unittest discover -s tests -v
+uv run --locked playwright install chromium
+uv run --locked python tests/browser/edition_focus.py
 ```
 
 离线测试涵盖站内证据、回补与去重、旧简报迁移、匿名事件、流式计时和预算拦截。部署时，Web 和每日任务共享同一个 SQLite 卷。Web 服务监听宿主机的 `127.0.0.1:8000`，每日任务从部署环境读取 API 密钥。

@@ -849,8 +849,15 @@ def select_edition(client, store, budget, day, folder, picks, loader, history, r
             continue
         try:
             article = write_article(
-                client, store, budget, day, item, exception_note(day, item, history),
-                loader, folder, review.get("reader_value"),
+                client,
+                store,
+                budget,
+                day,
+                item,
+                exception_note(day, item, history),
+                loader,
+                folder,
+                review.get("reader_value"),
             )
         except (OSError, ValueError) as exc:
             review.update(status="draft_failed", error=str(exc))

@@ -108,7 +108,7 @@ cardList.addEventListener("click", event => {
                        || !window.getSelection().isCollapsed)) return;
   if (details.open) {
     details.open = false;
-    details.querySelector("summary").focus({preventScroll: true});
+    if (closeButton) details.querySelector("summary").focus({preventScroll: true});
     if (card.getBoundingClientRect().top < 0) {
       card.scrollIntoView({
         block: "start",

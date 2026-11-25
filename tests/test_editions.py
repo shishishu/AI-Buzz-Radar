@@ -254,8 +254,13 @@ class EditionTest(unittest.TestCase):
 
     def test_fine_ranking_requires_reader_value_for_every_eligible_item(self):
         decision = dict(
-            url=URL, eligible=True, genre="技术解析", reason="有可复核的实验",
-            section=0, evidence="matched trials", reader_value="  ",
+            url=URL,
+            eligible=True,
+            genre="技术解析",
+            reason="有可复核的实验",
+            section=0,
+            evidence="matched trials",
+            reader_value="  ",
         )
         with self.assertRaisesRegex(ValueError, "reader_value"):
             FineRanking(decisions=[decision], portfolio_reason="问题互补")

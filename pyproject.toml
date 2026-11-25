@@ -37,4 +37,7 @@ target-version = "py311"
 select = ["E", "F", "I", "B", "UP"]
 
 [dependency-groups]
-dev = ["ruff>=0.12,<1"]
+dev = [
+    "playwright==1.58.0",
+    "ruff>=0.12,<1",
+]
