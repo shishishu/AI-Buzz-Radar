@@ -245,15 +245,8 @@ class EditionTest(unittest.TestCase):
             self.assertIn("第 3 天", cards[0].get_text())
             self.assertNotIn("第 ", cards[1].get_text())
             first_page = folder / f"agent-reading-{DAY}.html"
-            prior = BeautifulSoup(first_page.read_bytes(), "html.parser")
-            shared_article = page.select("article")[0]  # article a appears on all three dates
-            self.assertEqual(
-                shared_article.select_one(".like")["data-counter"],
-                prior.article.select_one(".like")["data-counter"],
-            )
-            self.assertEqual(len({b["data-counter"] for b in page.select(".like")}), 4)
-            self.assertEqual(page.footer.select_one(".like")["data-counter"], "likes")
-            self.assertIsNotNone(page.footer.select_one("#views"))
+            self.assertFalse(page.select(".like, [data-counter], #views"))
+            self.assertNotIn("abacus.jasoncameron.dev", latest.decode())
             first_page.write_text("Already published")
             publish(folder, issues, only_day=issues[-1].day)
             self.assertEqual(first_page.read_text(), "Already published")

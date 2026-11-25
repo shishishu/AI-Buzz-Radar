@@ -1222,10 +1222,6 @@ def publish(folder, editions, *, only_day=None):
             style=style,
             cards=[html for _, html in cards],
             english_cards=english_cards,
-            article_keys=[
-                "article-" + hashlib.sha256(article_identity(a.url).encode()).hexdigest()[:24]
-                for a in edition.articles
-            ],
             has_original_images=any(a.original_image for a in edition.articles),
             compare=compare,
             engine="Codex CLI" if control else "Responses API",
