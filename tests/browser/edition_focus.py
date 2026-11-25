@@ -32,6 +32,19 @@ def check_page(page, *, touch, english):
 
     if english:
         hit(page.get_by_role("button", name="English", exact=True))
+    cards = page.locator("article")
+    expect(cards).to_have_count(3)
+    for entry in cards.all():
+        expect(entry.locator("h3 + p > strong").first).to_be_visible()
+        source = entry.locator(".full a")
+        expect(source).to_have_count(1)
+        expect(source).to_have_text("Original article" if english else "阅读原文")
+        expect(source).to_be_hidden()
+        hit(entry.locator("h2"))
+        expect(source).to_be_visible()
+        assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth")
+        hit(entry.locator("h2"))
+        expect(source).to_be_hidden()
     label = "Read more" if english else "展开全文"
     expect(summary).to_have_accessible_name(label)
     for target in (title, summary):

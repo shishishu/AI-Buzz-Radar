@@ -54,10 +54,12 @@ class SameSiteRedirect(HTTPRedirectHandler):
 
 
 def fetch(url: str) -> bytes:
+    # METR syndicates full reports in one feed, already larger than an article.
+    limit = 12_000_000 if url == "https://metr.org/feed.xml" else 4_000_000
     request = Request(url, headers={"User-Agent": "AI-Buzz-Radar/0.1 (technical blog reader)"})
     with build_opener(SameSiteRedirect()).open(request, timeout=20) as response:
-        data = response.read(4_000_001)
-    if len(data) > 4_000_000:
+        data = response.read(limit + 1)
+    if len(data) > limit:
         raise ValueError("Source exceeded article size limit")
     return data
 

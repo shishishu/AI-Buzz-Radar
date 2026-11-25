@@ -100,7 +100,23 @@ def _daily_summary(record, path):
             if recall.get("start") and recall.get("end")
             else ""
         )
-        lines.append(f"{interval}去重后共 {recall['count']} 篇。")
+        if "primary_count" in recall:
+            lines.append(
+                f"{interval}常规主池 {recall['primary_count']} 篇。回溯窗口自 "
+                f"{recall['classic_start']} 起，索引返回 {recall['older_index_count']} 篇较早工作，"
+                f"{len(recall['classic_candidates'])} 篇有近期讨论线索。"
+                f"合并后 {recall['count']} 篇。"
+            )
+            for item in recall["classic_candidates"]:
+                trigger = item["triggers"][0]
+                lines.append(
+                    f"- {_link(item['url'], item['url'])}，首发 {item['published']}；"
+                    + _link(f"{trigger['date']} 讨论", trigger["url"])
+                )
+            if recall.get("discussion_warnings"):
+                lines.append("部分讨论索引不可用，详见 JSON；缺失信号按未核实处理。")
+        else:
+            lines.append(f"{interval}去重后共 {recall['count']} 篇。")
     if source_counts:
         lines.append(
             "来源分布为 "
@@ -139,6 +155,39 @@ def _daily_summary(record, path):
             )
     lines.extend(["", "## 精排与入选", "", _plain(fine.get("rule", "")), ""])
     reviews = {item["url"]: item for item in fine_items}
+    if "internal_top_five" in fine:
+        lines.extend(
+            [
+                "### 内部优先五篇",
+                "",
+                "| 排名 | 工作 | 重要 /30 | 证据 /30 | 增量 /20 | 当期 /10 | 讨论 /10 | 总分 |",
+                "|---:|---|---:|---:|---:|---:|---:|---:|",
+            ]
+        )
+        for i, url in enumerate(fine["internal_top_five"], 1):
+            r = reviews[url]
+            s = r["scores"]
+            lines.append(
+                f"| {i} | {_link(r['title'], url)} | {s['importance']} | {s['evidence_quality']} "
+                f"| {s['knowledge_gain']} | {s['freshness']} | {s['discussion']} | {r['total']} |"
+            )
+        lines.append("")
+        if fine["internal_shortfall"]:
+            lines.extend(
+                [
+                    f"合格工作共 {fine['eligible_count']} 篇，"
+                    f"内部五席缺 {fine['internal_shortfall']} 席。",
+                    "",
+                ]
+            )
+        for url in fine["internal_top_five"]:
+            r = reviews[url]
+            if signal := r.get("discussion_evidence"):
+                lines.append(
+                    f"- {_plain(r['title'])}　"
+                    + _link(f"{signal['source']} · {signal['date']}", signal["url"])
+                )
+        lines.append("")
     if fine.get("portfolio_reason"):
         lines.extend(["**组合取舍**　" + _plain(fine["portfolio_reason"]), ""])
     winners = [item["url"] for item in record["selected"]]
@@ -244,7 +293,10 @@ def selection_summary_ready(path, record, *, restore=False):
 def save_selection_log(output: Path, record: dict) -> Path:
     """Publish a complete decision record atomically, keeping failed runs separate."""
     path = selection_log_path(output, record["day"])
-    if record.get("schema_version") != 1 or record.get("status") not in {"selected", "failed"}:
+    if record.get("schema_version") not in (1, 2) or record.get("status") not in {
+        "selected",
+        "failed",
+    }:
         raise ValueError("Invalid selection log version or status")
     if not record.get("mode") or not all(
         isinstance(record.get(s), dict) for s in ("recall", "coarse", "fine")

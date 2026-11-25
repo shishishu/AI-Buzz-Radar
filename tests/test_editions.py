@@ -32,6 +32,14 @@ from ai_buzz_radar.store import Store
 
 DAY = date(2026, 11, 21)
 URL = "https://huggingface.co/blog/test"
+SCORES = dict(
+    importance=25,
+    evidence_quality=24,
+    knowledge_gain=15,
+    discussion=0,
+    discussion_index=-1,
+    classic_reason="",
+)
 SOURCE = b"""<main><article>sidebar</article><div class="blog-content"><h2>
 <a id="measured" href="#measured"></a>Measurements</h2><p>Our experiment controls variance.</p>
 <h2>Limits</h2><p>Time was not controlled.</p></div></main>"""
@@ -112,6 +120,7 @@ class EditionTest(unittest.TestCase):
                 tomorrow = DAY + timedelta(days=1)
                 with (
                     patch("ai_buzz_radar.editions.coarse_rank", return_value=[]),
+                    patch("ai_buzz_radar.editions.hn_discussions", return_value=({}, [], [])),
                     self.assertRaisesRegex(ValueError, "Fewer than three"),
                 ):
                     generate(None, store, 1, tomorrow, folder)
@@ -261,6 +270,7 @@ class EditionTest(unittest.TestCase):
             section=0,
             evidence="matched trials",
             reader_value="  ",
+            **SCORES,
         )
         with self.assertRaisesRegex(ValueError, "reader_value"):
             FineRanking(decisions=[decision], portfolio_reason="问题互补")
@@ -307,6 +317,7 @@ class EditionTest(unittest.TestCase):
                         section=0,
                         evidence="matched trials",
                         reason="检查了等预算对照",
+                        **SCORES,
                     )
                     for i in [0, 1, 2, 4, 7, 3]
                 ],
@@ -422,6 +433,7 @@ class EditionTest(unittest.TestCase):
                             reason="原文提供了所需的证据",
                             section=0,
                             evidence="matched trials",
+                            **SCORES,
                         )
                         for i, item in enumerate(chosen_papers + chosen_posts)
                     ],
@@ -564,7 +576,6 @@ class EditionTest(unittest.TestCase):
                     [original_reading_url(url) for url in article.links],
                 )
                 self.assertTrue(article.translation_url)
-                original, translated = [a["href"] for a in card.select(".full a")]
-                self.assertEqual(original, original_reading_url(article.url))
-                self.assertNotEqual(original, translated)
-                self.assertEqual(translated, article.translation_url)
+                self.assertEqual(
+                    [a["href"] for a in card.select(".full a")], [original_reading_url(article.url)]
+                )

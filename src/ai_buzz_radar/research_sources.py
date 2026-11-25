@@ -12,7 +12,9 @@ from ai_buzz_radar.blogs import SOURCES, Candidate, Source, discover, fetch
 ARXIV_HTML = Source("arXiv", "https://arxiv.org/", ("/html/",))
 ARXIV_LIMIT = 80
 LANGCHAIN = Source("LangChain", "https://www.langchain.com/blog", ("/blog/",))
-DEVELOPER_SOURCES = (LANGCHAIN,)
+METR = Source("METR", "https://metr.org/feed.xml", ("/blog/", "/notes/"), True)
+REPLIT = Source("Replit Frontier", "https://frontier.replit.com/rss.xml", ("/",), True)
+DEVELOPER_SOURCES = (LANGCHAIN, METR, REPLIT)
 ARTICLE_BODY_SELECTOR = (
     ".article-content, .blog-content, [data-article-body], .post-content, "
     ".text-rich-text-v2-blog-post"
@@ -23,7 +25,9 @@ def arxiv_query_url(day, days):
     start = day - timedelta(days=days - 1)
     params = {
         "search_query": (
-            '(ti:agent OR ti:agents OR ti:agentic OR ti:"tool use" OR ti:"tool-use") AND '
+            '(ti:agent OR ti:agents OR ti:agentic OR ti:"tool use" OR ti:"tool-use" OR '
+            'ti:"long-horizon" OR ti:"self-improvement" OR ti:"self-evolving" OR '
+            '(ti:memory AND (abs:agents OR abs:agentic)) OR ti:"AI R&D") AND '
             f"submittedDate:[{start:%Y%m%d}0000 TO {day:%Y%m%d}2359]"
         ),
         "max_results": ARXIV_LIMIT,
@@ -119,10 +123,14 @@ def discover_editions(day, days, loader=fetch, sources=SOURCES):
         posts, alerts = langchain_candidates(day, day - timedelta(days=days - 1), loader)
         rows.extend(posts)
         warnings.extend(alerts)
-    try:
-        data = loader(arxiv_query_url(day, days))
-        papers = arxiv_candidates(data, day - timedelta(days=days - 1), day)
-    except (OSError, ValueError, ElementTree.ParseError) as exc:
-        warnings.append(f"arXiv: {exc}")
-        papers = []
-    return sorted(rows + papers, key=lambda c: (c.published, c.title), reverse=True), warnings
+    windows = [(day, min(days, 30))]
+    if days > 30:
+        windows.append((day - timedelta(days=30), days - 30))
+    for end, count in windows:
+        try:
+            data = loader(arxiv_query_url(end, count))
+            papers = arxiv_candidates(data, end - timedelta(days=count - 1), day)
+            rows.extend(item for item in papers if item.published <= end)
+        except (OSError, ValueError, ElementTree.ParseError) as exc:
+            warnings.append(f"arXiv ({end}, {count} days): {exc}")
+    return sorted(rows, key=lambda c: (c.published, c.title), reverse=True), warnings

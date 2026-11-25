@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Buzz Radar 版本演进 · v0.1—v1.1</title>
+<title>AI Buzz Radar 版本演进 · v0.1—v1.3</title>
 <style>
 :root {color-scheme:light;--paper:#fbfaf6;--ink:#172c28;--mute:#51645e;--green:#196749;--rule:#d6ded5;--tint:#edf3eb}
 * {box-sizing:border-box}
@@ -71,8 +71,8 @@ tfoot {background:var(--tint);font-weight:700}
 </style></head>
 <body><main class="wrap" id="top">
 <header class="cover"><p class="brand">AI Buzz Radar</p><h1>版本演进</h1>
-<div class="period">v0.1 — v1.1　·　2026 年 11 月 22—25 日</div>
-<p class="intro">最初的问题是“今天发布了哪些 AI 产品？”四天后，日报每天要回答的是“哪三篇一手材料，值得 Agent 开发者用来做决定？”前八个里程碑按产品决策回溯编号，v1.1 起按实际改版续记。这些版本是事后标记的产品里程碑，日期按开发与讨论时间记。</p></header>
+<div class="period">v0.1 — v1.3　·　2026 年 11 月 22—25 日</div>
+<p class="intro">最初的问题是“今天发布了哪些 AI 产品？”到 11 月 25 日，问题变成了“Agent 最近能做哪些以前做不到的事，读者凭什么相信？”前八个里程碑记录从新品榜到每日三篇的过程。v1.1 至 v1.3 把同一天的多次迭代合并为三个编辑决定，分别涉及怎样读、为谁写、哪些工作值得占一席。</p></header>
 <div class="layout"><aside><nav aria-label="版本目录"><div class="nav-title">版本目录</div><ol><li><a href="#v0-1"><span>v0.1</span>Product Hunt 新品</a></li>
 <li><a href="#v0-2"><span>v0.2</span>Agent 技术阅读</a></li>
 <li><a href="#v0-3"><span>v0.3</span>固定每日三篇</a></li>
@@ -81,7 +81,9 @@ tfoot {background:var(--tint);font-weight:700}
 <li><a href="#v0-6"><span>v0.6</span>算法研究员试选</a></li>
 <li><a href="#v0-7"><span>v0.7</span>开发者选稿</a></li>
 <li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li>
-<li><a href="#v1-1"><span>v1.1</span>阅读与反馈</a></li></ol></nav></aside>
+<li><a href="#v1-1"><span>v1.1</span>卡片阅读与分享</a></li>
+<li><a href="#v1-2"><span>v1.2</span>面向好奇的读者</a></li>
+<li><a href="#v1-3"><span>v1.3</span>五选三的前沿日报</a></li></ol></nav></aside>
 <div><details><summary>版本目录</summary><nav aria-label="手机版本目录"><ol><li><a href="#v0-1"><span>v0.1</span>Product Hunt 新品</a></li>
 <li><a href="#v0-2"><span>v0.2</span>Agent 技术阅读</a></li>
 <li><a href="#v0-3"><span>v0.3</span>固定每日三篇</a></li>
@@ -90,7 +92,9 @@ tfoot {background:var(--tint);font-weight:700}
 <li><a href="#v0-6"><span>v0.6</span>算法研究员试选</a></li>
 <li><a href="#v0-7"><span>v0.7</span>开发者选稿</a></li>
 <li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li>
-<li><a href="#v1-1"><span>v1.1</span>阅读与反馈</a></li></ol></nav></details>
+<li><a href="#v1-1"><span>v1.1</span>卡片阅读与分享</a></li>
+<li><a href="#v1-2"><span>v1.2</span>面向好奇的读者</a></li>
+<li><a href="#v1-3"><span>v1.3</span>五选三的前沿日报</a></li></ol></nav></details>
 <section id="v0-1" aria-labelledby="title-v0-1">
 <header><div class="meta"><b>v0.1</b><time datetime="2026-11-22">11 月 22 日</time></div><h2 id="title-v0-1">从 Product Hunt 找到值得看的 AI 新品</h2></header>
 <p>初版每期最多五条，附发布日期、变化、推荐理由和发布页。榜单里仅带 AI 标签的产品也会被召回，于是选稿改为检查日榜前 20 名的发布页，选取前三个能举证核心 AI 能力或实质更新的产品，保留原榜名次。</p>
@@ -131,23 +135,43 @@ tfoot {background:var(--tint);font-weight:700}
 <p>读者也需要决定工具怎么交付结果、权限怎么开、记忆值不值得维护。选稿范围扩至论文、技术解析、开发指南和生产复盘。两条渠道各自提名，精读原文后才比较证据和三篇之间的互补性。体裁按文章写法判断，同一站点可以有多种体裁。</p>
 <p>本轮重新召回 10 月 27 日至 11 月 25 日的一手材料。以下 247 篇来自这次独立运行，与上一轮的 717 篇分开计数。</p>
 <table><caption>11 月 25 日选稿漏斗</caption><thead><tr><th scope="col">召回渠道</th><th scope="col">去重召回</th><th scope="col">粗排提名</th><th scope="col">进入精读</th><th scope="col">最终入选</th></tr></thead><tbody><tr><th scope="row">arXiv 索引</th><td>80</td><td>12</td><td>6</td><td>1</td></tr><tr><th scope="row">一手网站索引</th><td>167</td><td>12</td><td>6</td><td>2</td></tr></tbody><tfoot><tr><th scope="row">合计</th><td>247</td><td>24</td><td>12</td><td>3</td></tr></tfoot></table>
-<h3>11 月 25 日入选的三个开发决定</h3>
+<h3>这轮试选关心的三个开发决定</h3>
 <dl><div><dt>工具结果交付 · arXiv</dt><dd>机票查询表变长时，哪些数据该由工具筛选并直接交付，哪些适合由模型转述？</dd></div><div><dt>执行权限 · OpenAI</dt><dd>Codex 执行本地命令时，需要读取哪些目录，写入和联网权限又该怎样限制？</dd></div><div><dt>长期记忆 · LangChain</dt><dd>跨文档查询能从编译 wiki 和证据图中获益多少，何时值得承担维护成本？</dd></div></dl>
 <p>候补的浏览器优化复盘也有成本对照，但它与首篇都讨论如何让中间结果留在模型上下文之外。记忆文章给三席增加了另一项开发决定。</p>
-<p class="source"><b>私有选稿记录</b> <a href="../selection-records/revisions/2026-11-25/f7d5b84a1c4eafe6/2026-11-25.md">算法研究员试选</a> · <a href="../selection-records/2026-11-25.md">开发者重选与候补理由</a></p>
+<p class="source"><b>私有选稿记录</b> 在生成主机的 <code>selection-records/revisions/2026-11-25/</code> 中查阅。算法研究员试选保存在 <code>f7d5b84a1c4eafe6</code>，开发者重选与候补理由保存在 <code>09a0c9caec89cf52</code>，两份文件均名为 <code>2026-11-25.md</code>。</p>
 </section>
 <section id="v1-0" aria-labelledby="title-v1-0">
 <header><div class="meta"><b>v1.0</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-0">把每日选稿、验收和留档写进程序</h2></header>
 <p>当编辑要求只留在一次对话里，第二天换个会话就很难复现。v1.0 让手动和定时出刊走同一套流程。程序控制可核验的步骤，提示词描述需要判断的标准，每次运行把取舍写进私有记录。</p>
-<dl><div><dt>程序控制的部分</dt><dd>按日读取近 30 天的一手来源，两路分别粗排，合并后最多精读 12 篇，成稿恰好 3 篇。程序核对引文、双语栏目、链接、配图和顺序，验收通过才整体替换首页。往期记录用于生成入选标签。</dd></div><div><dt>模型负责的部分</dt><dd>本地 Codex CLI 使用 gpt-6.2-astra 的 ultra 推理档位。分别阅读候选和原文，说明证据支持哪项开发决定、结论在什么条件下成立，给出候补与组合理由。三席不设体裁配额。若三篇体裁相同，需交代其他体裁是否有合格候补以及取舍理由。</dd></div><div><dt>每天留下的记录</dt><dd>召回数和来源、粗排提名、精读与淘汰理由、原文引证、候补和最终三席，按日写成 JSON 与可读的 Markdown，保存在网页目录之外。同日重选保留上一版，便于并排追查。</dd></div><div><dt>运行与分发</dt><dd>定时器每天北京时间 21:00 触发，出刊进程完成后退出。失败后间隔 15 分钟重试，最多尝试三次。定时任务更新本地 HTML，发布到 Sites 需要单独操作。</dd></div></dl>
+<dl><div><dt>程序控制的部分</dt><dd>按日读取近 30 天的一手来源，两路分别粗排，合并后最多精读 12 篇，成稿恰好 3 篇。程序核对引文、双语栏目、链接、配图和顺序，验收通过才整体替换首页。往期记录用于生成入选标签。</dd></div><div><dt>模型负责的部分</dt><dd>本地 Codex CLI 使用 gpt-6.2-astra 的 ultra 推理档位。分别阅读候选和原文，说明证据支持哪项开发决定、结论在什么条件下成立，给出候补与组合理由。三席不设体裁配额。若三篇体裁相同，需交代其他体裁是否有合格候补以及取舍理由。</dd></div><div><dt>每天留下的记录</dt><dd>召回数和来源、粗排提名、精读与淘汰理由、原文引证、候补和最终三席，按日写成 JSON 与可读的 Markdown，保存在网页目录之外。同日重选保留上一版，便于并排追查。</dd></div><div><dt>运行与分发</dt><dd>v1.0 的定时器每天北京时间 21:00 触发，出刊进程完成后退出。失败后间隔 15 分钟重试，最多尝试三次。定时任务更新本地 HTML，发布到 Sites 需要单独操作。</dd></div></dl>
 <h3>截至 v1.0，仍留待验证的设想</h3>
 <dl><div><dt>个性化与热度</dt><dd>曾考虑用 X、知乎和微信公众号的讨论发现有价值的文章。当前日报对所有读者采用相同选稿。早期试选用过 Hugging Face 点赞数作为发现论文的线索。</dd></div><div><dt>语音与读者 Agent</dt><dd>曾提出让用户直接听日报，或交给自己的 Agent 深读后反馈。目前已有 Markdown 和结构化 JSON，可作为后续接入材料。语音与面向读者 Agent 的专用分发接口仍在讨论阶段。</dd></div></dl>
 <p class="source"><b>仓库依据</b> <a href="../README.md">运行说明</a> · <a href="../src/ai_buzz_radar/editions.py">每日选稿与校验</a> · <a href="../scripts/install_edition_timer.py">定时器</a> · <a href="../scripts/run_scheduled_edition.py">定时出刊入口</a></p>
 <p class="source"><b>查阅说明</b> 11 月 24–25 日的多轮变更集中在主仓提交 <code>e8086eb</code>。文内所引文件按仓库相对位置链接，私有选稿记录需在留有当日数据的工作区打开。</p>
 </section>
 <section id="v1-1" aria-labelledby="title-v1-1">
-<header><div class="meta"><b>v1.1</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-1">先读推荐理由，再展开感兴趣的文章</h2></header>
-<p>三篇文章默认显示到推荐理由，各自可以展开阅读全文。首版曾提供浏览量及文章、整份日报的点赞计数，因响应较慢，现已移除。卡片用「展开全文」「收起全文」提示操作，点击卡片正文也可切换。</p>
+<header><div class="meta"><b>v1.1</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-1">先扫三张卡片，再展开想读的那张</h2></header>
+<p>打开手机时，读者先看到每篇的原题和推荐理由。点卡片任意一处空白或正文就能展开，再点一次收起。图片可以单独放大，原文链接也可以直接打开，各自的操作不会收起文章。</p>
+<p>我们试过在页尾显示浏览量和整期点赞，在每篇旁也放一颗爱心。实际点击后，读者要等计数返回才知道是否生效，于是撤下计数。折叠提示保留“展开全文／收起全文”；图片缩放返回后去掉多余方框，键盘操作仍有可见的焦点提示。</p>
+<p>分享也遇到了实际障碍。同一个 Sites 地址，在读者的手机上开关 VPN 会得到不同结果。日报后来迁至固定的 GitHub Pages 网址，腾讯云开发机每天北京时间 09:00 生成、校验并发布静态页面，读者可以一直使用同一个链接。</p>
+<p class="source"><b>分发与交互</b> <a href="https://shishishu.github.io/radar/">日报分享地址</a> · <a href="../scripts/run_scheduled_edition.py">定时出刊入口</a></p>
+</section>
+<section id="v1-2" aria-labelledby="title-v1-2">
+<header><div class="meta"><b>v1.2</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-2">让第一次接触 Agent 的人也能判断值不值得读</h2></header>
+<p>读者反馈“感觉没做什么事，而且也不重要”。当时卡片擅长点名技术主题，却常把最有意思的发现藏在展开后的摘要里。“工具调用的可靠性”很难激起好奇；换成订机票时的问题，就容易判断自己是否想往下看。</p>
+<dl><div><dt>折叠时先交代发生了什么</dt><dd>例如，助手给的航班清单，每一行都可能是对的，却仍然漏掉了符合条件的航班。这个反常结果比“值得关注工具调用的开发者阅读”更能交代文章为何值得点开。</dd></div><div><dt>展开后把证据和推断写清楚</dt><dd>“内容摘要”交代作者怎样检查漏项、拿什么作比较。“延伸思考”说明读者可以据此改变哪个判断，哪些情况还需要证据。</dd></div></dl>
+<p>粗排、精排和成稿提示词都加入了读者问题。编辑要写下熟悉的场景、失败的后果和原文证据，验收时一并检查。这些要求随每日任务运行。中英两版保留原题，署名统一为 shishishu &amp; GPT。</p>
+</section>
+<section id="v1-3" aria-labelledby="title-v1-3">
+<header><div class="meta"><b>v1.3</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-3">从五篇候选中选三项前沿进展</h2></header>
+<p>把表达写得容易懂，仍可能把一件影响有限的事写得很清楚。这轮从选题开始追问，哪些工作改变了我们对 Agent 能力的判断？重点看长程任务、记忆、递归自我改进等问题，优先读 arXiv 论文和有原始证据的技术报告、博客。</p>
+<h3>五篇怎样进入候选</h3>
+<p>通常从近一个月的工作中挑。特别重要的旧作，遇到近期更新、复现或可追溯的实质讨论，可以回看至三个月。讨论度要能说清谁提出了什么问题。11 月 25 日的试选主池有 980 条材料，标题匹配或人工提名得到 312 条，精读 15 项。另复核 3 项较早的工作，共 18 项进入比较。</p>
+<p>这轮按问题重要性（30 分）、证据质量（30 分）、相对已有工作的增量（20 分）、时效（10 分）和讨论（10 分）逐项记录依据。五篇的单篇排序为 METR、WikiTrace、Replit、RSI-Env、RLVB。编辑再问一次，首页三篇合起来能让读者多看懂几个不同的问题。</p>
+<h3>为什么第三席给了第四名</h3>
+<dl><div><dt>METR · Agent 能独立完成多长的任务？</dt><dd>“约 3.6 个月翻倍”说的是成功率达到 50% 时可处理的任务长度。长度用人类专家完成同一任务所需的时间来衡量。这个定义决定了整条曲线应该怎么读。</dd></div><div><dt>WikiTrace · 记住经验后，为什么还要保存出处？</dt><dd>两组拿到相同经验，其中一组还得到检索提示，并可回看原始执行记录。在五套基准的八个评测组中，两套设置的平均得分相差 3.2 分，有提示、能回查的一组更高。</dd></div><div><dt>RSI-Env · 系统接手改进自己，哪些能力会一起进步？</dt><dd>同一次定向改进中，一套知识问答的得分从 82% 升到 88%，另一套推理题却从 65.2% 降到 53%。这一席让读者看到自我改进的代价。单篇排名更高的 Replit 并行实验和第五名 RLVB 留作候补。</dd></div></dl>
+<p>卡片首屏直接给出发现。展开后交代实验怎样得出它、读者可以相信到哪里。页面保留中英文解读，文章只链接作者原文。完整排序、候补与取舍留在内部记录。</p>
+<p class="source"><b>本期对照</b> <a href="../examples/agent-reading-2026-11-25.html">11 月 25 日三篇日报</a>。五篇的私有审读记录可在生成主机的 <code>selection-records/frontier-2026-11-25/review.md</code> 查阅。</p>
 </section>
 <a class="end" href="#top">返回顶部 ↑</a></div></div></main>
 <script>

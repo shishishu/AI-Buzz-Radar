@@ -23,6 +23,8 @@ IMAGE_CDNS = {
     "huggingface.co": {"cdn-uploads.huggingface.co"},
     "blog.cloudflare.com": {"cf-assets.www.cloudflare.com"},
     "www.langchain.com": {"cdn.prod.website-files.com"},
+    "metr.org": set(),
+    "frontier.replit.com": {"cdn.replit.com"},
     "lilianweng.github.io": set(),
     "arxiv.org": set(),
 }

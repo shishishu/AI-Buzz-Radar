@@ -1,156 +1,156 @@
 {
-  "updated_at": "2026-11-25T19:34:02.644439+08:00",
-  "ranking_request_id": "01a210bf-6977-7882-91a7-f0efa7caa997",
+  "updated_at": "2026-11-25T21:22:36.470440+08:00",
+  "ranking_request_id": null,
   "day": "2026-11-25",
   "articles": [
     {
-      "title": "Fidelity Collapses with Table Size, Not Turn Count: Delivery Architecture in a Deployed Tool-Using Agent",
-      "url": "https://arxiv.org/html/2611.00442v1",
-      "published": "2026-10-30",
+      "title": "AI R&D-relevant model capabilities are improving rapidly and are getting harder to measure",
+      "url": "https://metr.org/blog/2026-11-20-q4-2026-capability-update/",
+      "published": "2026-11-20",
+      "source": "METR",
+      "request_id": null,
+      "translation_url": null,
+      "note": "",
+      "note_en": "",
+      "draft": {
+        "topic": "长程任务",
+        "overview": "读懂五成成功率下的任务长度，以及这条曲线很难衡量哪些研究工作。",
+        "reason": "METR 用专家完成同一道题所需的工时衡量任务长度，发现 Agent 有五成把握做完的任务，约每 3.6 个月翻一倍。换成需要自己判断研究方向的工作，单看这条曲线，很难估计 Agent 究竟能接手多少。",
+        "blocks": [
+          {
+            "body": "研究者先估算专家要花多少工时才能达到指定成绩，再看每一代模型在多长的任务上仍有一半机会达到同一成绩。\n合并新旧两套测试，翻倍时间估计为 3.61 个月，95% 置信区间为 2.08 至 4.94 个月。这里的“小时”指专家工时。模型本身可能跑得快得多。",
+            "section": 12,
+            "evidence": "time horizons are doubling roughly every 3.61 months"
+          },
+          {
+            "body": "METR 请模型设计短时间内难以判断好坏的评测题，模型仍倾向于出能自动算分的优化题。交上来的题，没有一道被 METR 用进这份报告。\n优化代码可以马上计时，判断研究方向是否有价值可能要等很久。读增长曲线时，人类工时本身也有不确定性。这份报告里只有约 9% 的工时估计直接用了人员实测。",
+            "section": 11,
+            "evidence": "None of the tasks agents produced were sufficiently useful"
+          }
+        ]
+      },
+      "localization": {
+        "topic_en": "Long-horizon tasks",
+        "reason_en": "On METR’s R&D tests, the length of tasks agents could complete half the time doubled roughly every 3.6 months, measured in expert work hours. That curve tells us less about work where the agent has to judge for itself which research direction is worth pursuing.",
+        "summary_en": "METR measures task length by the time a skilled person would take to reach the same score. For each model it estimates the length at which success falls to 50%. Across two task suites, this horizon doubled every 3.61 months, with a 95% confidence interval of 2.08–4.94 months. An agent may take far less wall-clock time.",
+        "thinking_en": "Asked to design tests for decisions with poor short-term feedback, the agents still tended to propose automatically scored optimization tasks. METR used none of their submissions in this report.\nTiming a piece of code gives immediate feedback. Recognizing a worthwhile research question can take much longer. The hours scale is uncertain too: only about 9% of the human-time estimates directly used human baselines.",
+        "image_title_en": "Original figure 10 · Task length at 50% success",
+        "image_caption_en": "Model release dates run along the horizontal axis. The vertical axis measures human work time. The histogram shows the bootstrapped doubling-time estimates. Source: METR, CC BY.",
+        "image_alt_en": "The fitted horizon rises with model release date. The doubling-time distribution centers near 3.6 months."
+      },
+      "process": null,
+      "figure": null,
+      "original_image": {
+        "title": "原文图 10 · 有五成把握完成的任务有多长",
+        "caption": "左图按模型发布日期排列，纵轴是完成同一任务所需的人类工时。右图给出重复抽样得到的翻倍时间分布。来源：METR，CC BY。",
+        "alt": "左侧拟合线随模型发布日期向上，右侧翻倍时间的分布集中在 3.6 个月左右。",
+        "source_url": "https://metr.org/blog/2026-11-20-q4-2026-capability-update/#3c1-across-th11-and-th2-we-find-that-capabilities-are-doubling-roughly-every-36-months",
+        "asset_url": "https://metr.org/assets/images/q4-2026-capability-update/428eae27cea3d702.webp",
+        "filename": "cbcd5d82c2e351217a105cb0fb0af5cd5b82c40e6c14d68270cac9f5606e8b54.webp"
+      },
+      "links": [
+        "https://metr.org/blog/2026-11-20-q4-2026-capability-update/#3c1-across-th11-and-th2-we-find-that-capabilities-are-doubling-roughly-every-36-months",
+        "https://metr.org/blog/2026-11-20-q4-2026-capability-update/#3b2-on-domains-where-the-true-quality-of-a-solution-is-hard-for-the-agent-to-determine-due-to-prohibitively-long-feedback-loops-or-requirements-that-the-solution-generalize-models-appear-to-have-worse-judgment-than-human-experts"
+      ]
+    },
+    {
+      "title": "Don’t Just Trust Your Memory: Evidence-Linked Memory Reduces Memory-Induced Degradation in LLM Agents",
+      "url": "https://arxiv.org/html/2611.14320v1",
+      "published": "2026-11-10",
       "source": "arXiv",
-      "request_id": "01a210c2-b11e-7412-adfd-2cb87a5f913d",
+      "request_id": null,
       "translation_url": null,
       "note": "",
       "note_en": "",
       "draft": {
-        "topic": "航班清单",
-        "overview": "评估多轮筛选中让结果表绕过模型、从会话状态直接交付的收益",
-        "reason": "订票助手查到了航班，为什么最后给你的清单还会错？研究者让助手挑出下午起飞的航班。清单越长，模型重新列出结果时越容易出错；让模型只说筛选条件，由程序直接交付符合条件的航班，这组实验里 93 次都答对了。",
+        "topic": "经验记忆",
+        "overview": "用相同经验做对照，检验回看操作记录能否减少旧经验带来的错误。",
+        "reason": "给 Agent 同一份经验笔记，让它回查当时做过什么，它就更少把原本会做的题做错。五套基准共八组测试中，拿到原始记录和回查提示的 Agent，平均比只看笔记多得 3.2 分。",
         "blocks": [
           {
-            "body": "研究者保存了六条航线的查询结果。每次从同一张表的开头多取一些航班，再问同一个问题。这样就能单独观察清单变长的影响。\n让 Gemini 2.5 Flash 自己列出航班时，输入 5 行，83% 的回答拿到满分；输入 100 行，只有 6%。差距在第一次筛选时就出现了。",
-            "section": 18,
-            "evidence": "from 83% at K=5 to 6% at K=100 while BYPASS is perfect in all 93 runs"
+            "body": "一条旧笔记说，把物品放在亮灯旁就算完成任务。轮到检查花瓶，Agent 只开灯就交差。它本来知道要先拿起花瓶。\nWikiTrace 给每条经验连上产生它的原始操作和对这次成败的解释。作者比较了拿到相同经验的两组，既看新做对多少题，也查原来会做的题又错了多少。",
+            "section": 7,
+            "evidence": "Picks up the vase, then turns on the lamp"
           },
           {
-            "body": "直接交付清单的方案还做了另一件事：它把原始记录保存在会话里。实验测到的是两项改动加在一起的效果。\n下次看助手演示订票或查库存，可以让它处理一张长表，把最终清单和工具查到的记录逐行对一遍。屏幕上的“查询成功”只回答了前半个问题。",
-            "section": 36,
-            "evidence": "attributable to the pair, not to either member"
+            "body": "如果只报总分，新增的正确答案可能盖住被坏经验教错的旧题。测试记忆功能时，可以留一组助手原先稳定做对的任务，专门数它学坏了多少。\n这次实验中，带回查的系统每题平均推理成本比只给经验高 17%。如果笔记多到无法一次全部给模型，每道题该找出哪些笔记，还有待验证。",
+            "section": 25,
+            "evidence": "1.17 times as much per task as Insights Only"
           }
         ]
       },
       "localization": {
-        "topic_en": "Flight lists",
-        "reason_en": "A flight search finds the right records. How can the assistant still hand you the wrong list? Asked to pick afternoon departures, the model made more mistakes as the list grew. When the model supplied only the filter and a program returned the matching flights, all 93 runs in this experiment earned full credit.",
-        "summary_en": "The researchers saved results for six routes. They took progressively more flights from the start of each route’s table and asked the same question each time. That let them isolate the effect of list length.\nWhen Gemini 2.5 Flash listed the flights itself, 83% of answers earned full credit on five rows and only 6% on 100 rows. The gap showed up on the very first filter request.",
-        "thinking_en": "The direct-delivery setup also saved the original records across turns. The experiment measured the combined effect of both changes.\nNext time you see a booking or inventory demo, try a long list and compare the final answer with the tool’s records, row by row. The “search successful” message tells you only how the first half went.",
-        "image_title_en": "Figure 2 · Fidelity as tool results grow",
-        "image_caption_en": "Each table grows by appending rows to a fixed payload. Across six routes, Flash synthesis falls to 6% fidelity at 100 rows. Direct delivery is correct in all 93 runs. Shading shows 95% Wilson intervals.",
-        "image_alt_en": "The orange synthesis curve drops as rows are added. The blue direct-delivery curve stays at 100%."
+        "topic_en": "Agent memory",
+        "reason_en": "Agents lost fewer previously solved tasks when they could check their notes against the actions that produced them. Across eight suites from five benchmarks, agents with source records and a prompt to check them averaged 3.2 points more than agents given the same notes alone.",
+        "summary_en": "One note said placing an object beside a lit lamp completed the task. Asked to examine a vase, the agent switched on the lamp and stopped. Without the note, it picked up the vase first.\nWikiTrace links each lesson to the original actions and an explanation of what happened. The study tracked newly solved tasks as well as previously solved tasks that now failed.",
+        "thinking_en": "An aggregate score can hide familiar tasks lost to bad advice. When testing memory, keep cases the agent already solves reliably and count the ones it now fails.\nEvidence checking also has a cost: test-time spending per task averaged 17% more than with notes alone. Finding the right lesson in a much larger archive remains an open question.",
+        "image_title_en": "Original figure 1 · When a lesson leads an agent astray",
+        "image_caption_en": "The top panel distinguishes wrong, out-of-scope and misused memories. The lower panel follows a suspect lesson back to the source run and shows it being revised. Figure by Yukyeong Lee et al. (CC BY 4.0).",
+        "image_alt_en": "A diagram contrasts failing after reusing a bad lesson with revising it after checking the source run."
       },
       "process": null,
       "figure": null,
       "original_image": {
-        "title": "图 2 · 工具结果表变长时，交付准确率如何变化",
-        "caption": "同一份结果按行扩展。六条航线汇总后，Flash 转述组在 100 行时的准确率降至 6%，直接交付组的 93 次运行均正确。阴影为 95% Wilson 区间。",
-        "alt": "随行数增加，橙色模型转述曲线下降，蓝色直接交付曲线保持在 100%。",
-        "source_url": "https://arxiv.org/html/2611.00442v1#S5.F2",
-        "asset_url": "https://arxiv.org/html/2611.00442v1/fig3_topk.svg",
-        "filename": "677db8c639baf2bab57df4384d153ad562d49688a6e16a373f44c9ad9cb07281.png"
+        "title": "原文图 1 · 一条经验怎样把 Agent 带偏",
+        "caption": "上半部列出记忆里的错误、超出适用范围及误用。下半部展示 Agent 沿链接回到原始记录，核查并改正经验。 原图作者为 Yukyeong Lee 等人（CC BY 4.0）。",
+        "alt": "示意图对比直接套用错误经验的失败路径和回查原始轨迹后的修订路径。",
+        "source_url": "https://arxiv.org/html/2611.14320v1#S1.F1",
+        "asset_url": "https://arxiv.org/html/2611.14320v1/fig01-teaser.png",
+        "filename": "60f9c71eec043062b3e93e53f37cfc5c89af21d8a7cc492adc846066a4ff29f4.png"
       },
       "links": [
-        "https://arxiv.org/html/2611.00442v1#S5.SS1.SSS0.Px1",
-        "https://arxiv.org/html/2611.00442v1#Sx1.SS0.SSS0.Px4"
+        "https://arxiv.org/html/2611.14320v1#S3.SS2",
+        "https://arxiv.org/html/2611.14320v1#S5.SS4"
       ]
     },
     {
-      "title": "Inside the Codex sandbox",
-      "url": "https://openai.com/index/inside-the-codex-sandbox",
-      "published": "2026-11-18",
-      "source": "OpenAI",
-      "request_id": "01a210c4-66bb-7df2-9a9e-1538670a7059",
-      "translation_url": "https://openai.com/zh-Hans-CN/index/inside-the-codex-sandbox/",
-      "note": "上次入选于 2026-11-21",
-      "note_en": "Previously featured on 2026-11-21",
-      "draft": {
-        "topic": "工具权限",
-        "overview": "为本地 MCP 服务单独配置可写目录和联网权限",
-        "reason": "给编程助手装一个记笔记的工具，它能改动电脑上的哪些文件？在 Codex 里，按文中的默认方式接入这个本地工具，它就有了和你一样的文件与联网权限。作者让它照样能记笔记，却只能写两个指定目录，连网也用不着。",
-        "blocks": [
-          {
-            "body": "这个记忆工具通过 MCP 接入 Codex，在你的电脑上作为单独的程序运行。文章考察的是一种叫 stdio 的本地连接方式。作者先建好笔记目录，把指定版本的软件包下载到缓存，再把工具放进沙箱，也就是一个限制程序权限的运行环境。\n下次启动时，工具从缓存读软件包，把笔记存进数据目录。即使关闭网络、只允许写入缓存和数据目录，它也能启动。",
-            "section": 21,
-            "evidence": "without network access, with writes limited to the npm cache and the server’s data directory"
-          },
-          {
-            "body": "Codex 单凭启动命令，推断不出一个工具为了工作需要哪些文件或网络服务。这些权限要由接入工具的人决定。\n看一个工具的安装说明时，可以找两个答案：我的笔记会存在哪里？它还被允许写到哪里？前者告诉你去哪儿找笔记，后者才告诉你一次误操作可能波及什么。",
-            "section": 18,
-            "evidence": "Codex cannot reliably infer which files or network services that server needs"
-          }
-        ]
-      },
-      "localization": {
-        "topic_en": "Tool permissions",
-        "reason_en": "You give a coding assistant a note-taking tool. Which files on your computer can it change? In the local setup shown for Codex, the tool starts with your own file and network permissions. The author shows that it can still keep notes with writes limited to two directories and networking switched off.",
-        "summary_en": "The memory tool connects to Codex through MCP and runs as a separate program on your computer. The example uses a local connection called stdio. The author creates a notes directory, caches a specific version of the software package, and launches the tool in a sandbox that limits its permissions.\nAt startup the tool reads the package from the cache. It can start offline, with writes allowed only to the cache and its data directory.",
-        "thinking_en": "Codex cannot tell from a launch command which files or network services a tool needs. The person connecting the tool has to make that decision.\nWhen reading an installation guide, look for two answers: where will my notes be saved, and where else is the tool allowed to write? The first helps you find your notes. The second tells you what an accidental change could affect.",
-        "image_title_en": "How Codex applies a permission profile to a command",
-        "image_caption_en": "Codex launches the command under the session’s permission profile. Child processes inherit the sandbox restrictions. When enabled, the network proxy enforces domain rules.",
-        "image_alt_en": "Flow diagram showing how configuration and managed requirements define the session’s permission profile. Codex uses the profile to launch a command in a sandbox on macOS, Linux, or Windows. Child processes inherit the restrictions, and an optional network proxy filters requests by domain."
-      },
-      "process": null,
-      "figure": null,
-      "original_image": {
-        "title": "Codex 如何把权限配置应用到命令",
-        "caption": "Codex 按会话权限配置启动命令，子进程继承沙箱限制。启用网络代理时，由代理执行域名规则。",
-        "alt": "流程图中，配置和管理员设定的约束共同确定会话权限配置。Codex 据此在 macOS、Linux 或 Windows 的沙箱中启动命令。子进程继承限制，可选的网络代理按域名规则筛选请求。",
-        "source_url": "https://openai.com/index/inside-the-codex-sandbox",
-        "asset_url": "https://images.ctfassets.net/kftzwdyauwt9/7phvBtHTMSTY6vHJx9YL9L/0a4cf5a80f25882a663681872f648617/codex-sandbox-command-desktop-light.png?w=1080&q=90&fm=webp",
-        "filename": "74f94b4b39f0ed4ee3ac375a02fef9debf378e8fde8f3e36db6d8c15258c4e88.webp"
-      },
-      "links": [
-        "https://openai.com/index/inside-the-codex-sandbox#:~:text=without%20network%20access%2C%20with%20writes%20limited%20to%20the%20npm%20cache%20and%20the%20server%E2%80%99s%20data%20directory",
-        "https://openai.com/index/inside-the-codex-sandbox#example-sandboxing-an-mcp-server"
-      ]
-    },
-    {
-      "title": "Building Evidence-Grounded Agent Memory with OpenWiki and Graphs",
-      "url": "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs",
-      "published": "2026-10-28",
-      "source": "LangChain",
-      "request_id": "01a210c2-b8bb-71e1-a107-2e0148ed62e2",
+      "title": "RSI-Env: An Open-Ended Environment for Recursive Self-Improvement of Agents",
+      "url": "https://arxiv.org/html/2611.01736v1",
+      "published": "2026-11-01",
+      "source": "arXiv",
+      "request_id": null,
       "translation_url": null,
       "note": "",
       "note_en": "",
       "draft": {
-        "topic": "跨文档问答",
-        "overview": "评估跨文档问答何时值得编译维基并接入证据图",
-        "reason": "假设一份保单有了补充条款，原来的约定还算数吗？搜到旧条款很容易，弄清哪一条改了哪一条才难。在模拟保险文档上，事先把条款关系整理成一本可查的手册，助手更会回答这类问题；只查一段原文时，直接搜索反而更快，得分也相近。",
+        "topic": "自我改进",
+        "overview": "用一次连续两轮的改进，观察新版本提升了什么，又失去了什么。",
+        "reason": "一次实验中，Agent 连续改进自己两轮，事实问答更准了，科学推理却退步了。事实问答正确率从 82% 升到 85%，再到 88%，科学推理正确率则从最初的 65.2% 降到最终的 53.0%。",
         "blocks": [
           {
-            "body": "研究者用 111 份模拟文档编了两类题：80 道只需找到一段话，50 道要把不同文件里的线索连起来。同一个助手做跨文档题，直接搜索得 0.10 分，有了手册得 0.52 分，满分为 1。\n再把手册里的说法逐条连回原文段落，得分升到 0.66。同一道题问三遍，答案引用相同证据的程度也翻了一倍。",
-            "section": 6,
-            "evidence": "Accuracy rose 27%, citation consistency doubled"
+            "body": "第一轮，Agent 只改了模型周围调用工具、执行任务的程序，模型参数没动。第二轮，这个新版本自己写出 48 条训练样本，再用它们训练模型。\n作者在固定的 500 道 SimpleQA 事实题上评估，每题做三次取平均，才得到 82%、85%、88% 这三个数。",
+            "section": 11,
+            "evidence": "constructs 48 prompt–completion pairs"
           },
           {
-            "body": "这项测试把“答得对”和“三次回答引用了相同段落”分开计分。一个助手完全可能每次都引用同一条旧规定，给出同一个错答。\n下次让助手解释一份改过的合同，可以请它同时找出原条款和修改它的那段文字。两段放在一起，你才有材料自己判断哪一条适用。",
-            "section": 3,
-            "evidence": "whether the agent reliably grounds its answers in the same sources"
+            "body": "第一轮改出来的版本亲自完成了第二轮，这才让我们看见自我改进如何延续。两次进步之后，下一代还能找出管用的改动吗？\n另一个值得看的数字是它在其他科目丢了多少分。科学推理的回落提醒我们，看自我改进演示时，要同时看目标任务和原先就会的任务。",
+            "section": 8,
+            "evidence": "Knowledge Self falls to 53.0% on GPQA Diamond"
           }
         ]
       },
       "localization": {
-        "topic_en": "Reading across files",
-        "reason_en": "Suppose a policy has an amendment. Does the original promise still hold? Finding the old clause is easy; working out what changed is harder. On simulated insurance documents, an assistant answered these questions better with a guide to how clauses connect. For a single-passage lookup, plain search was faster and scored about as well.",
-        "summary_en": "The researchers used 111 simulated documents to build 80 single-passage questions and 50 that required connecting different files. On the cross-document questions, the same assistant scored 0.10 out of 1 with search and 0.52 with a compiled guide.\nLinking individual claims in the guide back to source paragraphs raised the score to 0.66. When the researchers asked each question three times, overlap between the passages cited also doubled.",
-        "thinking_en": "The study scored correctness separately from citing the same passages across three answers. An assistant could consistently cite an outdated rule and consistently get the answer wrong.\nNext time an assistant explains an amended contract, ask it to find both the original clause and the passage that changed it. Seeing them side by side gives you a way to judge which one applies.",
-        "image_title_en": "Three memory setups on cross-document questions",
-        "image_caption_en": "Moving from the wiki alone to a wiki with an evidence graph raised accuracy from 0.52 to 0.66 and cut median answer time from 30 to 18 seconds in the authors’ evaluation.",
-        "image_alt_en": "Four charts compare accuracy, citation consistency, cost per correct answer, and median latency with search alone, a wiki, or a wiki plus an evidence graph."
+        "topic_en": "Self-improvement",
+        "reason_en": "In one run, an agent improved its own factual question answering over two rounds while losing ground on science reasoning. Factual accuracy rose from 82% to 85% to 88%, while science reasoning accuracy fell from 65.2% at the start to 53.0% at the end.",
+        "summary_en": "The first update changed the harness, the software that runs the agent, leaving model weights fixed. That updated system wrote 48 training examples and trained the next model.\nThe authors evaluated all three versions on the same 500 SimpleQA questions. Each accuracy is the average over three attempts per question.",
+        "thinking_en": "The handoff is what makes this run recursive: the first update helped produce the next. Two questions remain for sustained improvement. Can later generations keep making useful changes?\nHow much ability survives elsewhere? The decline on GPQA Diamond, the science reasoning test, shows why a target score alone gives an incomplete picture.",
+        "image_title_en": "Original figure 1 · How the updated agent takes over",
+        "image_caption_en": "The current system on the right contains a model and an editable harness. The lower loop carries an accepted version into the next round. The host on the left manages evaluation and versions.",
+        "image_alt_en": "A controller, controlled interfaces and a working environment are connected by an accepted-update loop."
       },
       "process": null,
       "figure": null,
       "original_image": {
-        "title": "三种记忆方案怎样回答跨文档查询",
-        "caption": "作者比较了三种方案。从单用 wiki 到加入证据图，正确率从 0.52 升到 0.66，中位回答时间从 30 秒降到 18 秒。",
-        "alt": "原文四幅柱状图比较仅搜索、只用 wiki 及 wiki 加证据图的正确率、引用一致性、每个正确回答的成本和中位回答时间。",
-        "source_url": "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Better%20accuracy%2C%20lower%20cost%2C%20faster%20answers",
-        "asset_url": "https://cdn.prod.website-files.com/65c81e88c254bb0f97633a71/6ae0e289d91ee9dbea7c7433_Wiki%20and%20Graph%20results%20for%20agent%20memory.png",
-        "filename": "89f2c95cd73d5cdcf8e73fc98cc2ec6685f15155c795b866a54a4489cd86ec0c.png"
+        "title": "原文图 1 · 改过的系统怎样接手下一轮",
+        "caption": "右侧的当前版本包括模型和可编辑的运行程序。底部的回路表示已接受的版本进入下一轮。左侧的控制器独立管理版本和评估。",
+        "alt": "框架图由控制器、受控接口和工作环境组成，底部箭头从已接受的版本回到下一轮。",
+        "source_url": "https://arxiv.org/html/2611.01736v1#S2.F1",
+        "asset_url": "https://arxiv.org/html/2611.01736v1/framework.svg",
+        "filename": "12d42f106ab8c1081e27e5fcc43e506f663f17c01e2a2720aef715f05f01ccbc.png"
       },
       "links": [
-        "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Accuracy%20rose%2027%25%2C%20citation%20consistency%20doubled",
-        "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=whether%20the%20agent%20reliably%20grounds%20its%20answers%20in%20the%20same%20sources"
+        "https://arxiv.org/html/2611.01736v1#S4.SS5",
+        "https://arxiv.org/html/2611.01736v1#S4.SS2"
       ]
     }
   ]

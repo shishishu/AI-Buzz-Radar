@@ -6,7 +6,7 @@ from datetime import date, datetime
 from pathlib import Path
 from uuid import uuid4
 
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 from ai_buzz_radar.agent import TIMEZONE
 from ai_buzz_radar.blogs import fetch
@@ -20,9 +20,9 @@ from ai_buzz_radar.editions import (
     FineRanking,
     IllustratedCopy,
     Ranking,
+    apply_fine_ranking,
     archive,
     atomic,
-    chinese_alternate,
     evidence_links,
     exception_note,
     extract,
@@ -43,8 +43,30 @@ class Interpretations(Record):
     articles: list[Entry] = Field(min_length=3, max_length=3)
 
 
-class ArchivedFineRanking(Record):
-    decisions: list[EvidenceVerdict] = Field(max_length=12)
+class ArchivedVerdict(EvidenceVerdict):
+    model_config = ConfigDict(extra="ignore")
+
+
+def ranking_schema(catalog, saved_schema):
+    if catalog.get("stage") != "fine":
+        return Ranking
+    if any(
+        "discussion_index" in item.get("properties", {})
+        for item in saved_schema.get("$defs", {}).values()
+    ):
+        return FineRanking
+
+    # Earlier editorial prompts had several different verdict formats. Send the
+    # exact recorded schema; their common validated fields suffice for ordering.
+    class ArchivedFineRanking(Record):
+        model_config = ConfigDict(extra="ignore")
+        decisions: list[ArchivedVerdict] = Field(max_length=12)
+
+        @classmethod
+        def model_json_schema(cls, **kwargs):
+            return saved_schema
+
+    return ArchivedFineRanking
 
 
 def run_cli(folder, prompt, schema):
@@ -55,11 +77,16 @@ def run_cli(folder, prompt, schema):
 
 def select_urls(ranking, catalog, day):
     rows = {r["url"]: r for r in catalog["candidates"]}
-    urls = (
-        [d.url for d in ranking.decisions if d.eligible]
-        if catalog.get("stage") == "fine"
-        else ranking.urls
-    )
+    if isinstance(ranking, FineRanking):
+        sources = {}
+        for url, row in rows.items():
+            parts = {s["section"]: (s["heading"], "", s["text"]) for s in row["sections"]}
+            sources[url] = (dict(row), parts, {i: p[2] for i, p in parts.items()})
+        urls = apply_fine_ranking(day, ranking, sources, {})
+    elif catalog.get("stage") == "fine":
+        urls = [d.url for d in ranking.decisions if d.eligible]
+    else:
+        urls = ranking.urls
     ordered = list(dict.fromkeys(url for url in urls if url in rows))
     # Replays use the selection policy of the archived catalog.
     if "recent_editions" not in catalog and catalog.get("stage") != "fine":
@@ -98,7 +125,7 @@ def source_packet(row, original, store):
         }
     images = image_candidates(data, url)
     packet["images"] = image_catalog(images)
-    return packet, parts, name, chinese_alternate(data, url), images
+    return packet, parts, name, images
 
 
 def compare(folder, day, store, traces):
@@ -115,24 +142,20 @@ def compare(folder, day, store, traces):
     catalog_text = trace.input["input"][0]["content"]
     (rank_dir / "catalog.json").write_text(catalog_text)
     catalog = json.loads(catalog_text)
-    ranking_schema = Ranking
-    if catalog.get("stage") == "fine":
-        fields = trace.input["text"]["format"]["schema"]["properties"]
-        ranking_schema = FineRanking if "portfolio_reason" in fields else ArchivedFineRanking
     ranking, ranking_id = run_cli(
         rank_dir,
         trace.input["instructions"]
         + " Read only catalog.json. Do not use the network or other files.",
-        ranking_schema,
+        ranking_schema(catalog, trace.input.get("text", {}).get("format", {}).get("schema", {})),
     )
     rows = select_urls(ranking, catalog, day)
     originals = {a.url: a for a in baseline.articles}
     sources = {}
     for i, row in enumerate(rows, 1):
         url = row["url"]
-        packet, parts, name, translation, images = source_packet(row, originals.get(url), store)
+        packet, parts, name, images = source_packet(row, originals.get(url), store)
         (write_dir / f"article-{i}.json").write_text(json.dumps(packet, ensure_ascii=False))
-        sources[url] = parts, name, packet, translation, images
+        sources[url] = parts, name, packet, images
     result, writing_id = run_cli(
         write_dir,
         "Use only article-1.json through article-3.json in file order. Read the "
@@ -145,7 +168,7 @@ def compare(folder, day, store, traces):
     output = folder / "codex-cli"
     history = {a.url: e.day for e in editions if e.day < day for a in e.articles}
     for row, entry in zip(rows, result.articles, strict=True):
-        parts, name, packet, translation, images = sources[entry.url]
+        parts, name, packet, images = sources[entry.url]
         excerpts = {i: text for i, _, text in packet["sections"]}
         if any(b.evidence not in excerpts.get(b.section, "") for b in entry.draft.blocks):
             raise ValueError("Evidence missing from the CLI source packet")
@@ -154,7 +177,6 @@ def compare(folder, day, store, traces):
             url=entry.url,
             published=row["published"],
             source=name,
-            translation_url=translation,
             request_id=writing_id,
             note="",
             draft=entry.draft,

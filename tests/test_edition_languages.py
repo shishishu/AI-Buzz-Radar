@@ -52,7 +52,7 @@ class ReadingLanguageTest(unittest.TestCase):
                     ["Highlight", "Summary", "Takeaways"],
                 )
                 text = en.get_text(" ", strip=True)
-                for value in (copy.topic_en, copy.reason_en, copy.summary_en, copy.thinking_en):
+                for value in (copy.topic_en, copy.summary_en, copy.thinking_en):
                     for paragraph in value.splitlines():
                         self.assertIn(paragraph.strip(), text)
                 self.assertNotRegex(text, r"[\u4e00-\u9fff]")
@@ -60,11 +60,13 @@ class ReadingLanguageTest(unittest.TestCase):
                 self.assertEqual(en.figcaption.strong.get_text(), copy.image_title_en)
                 self.assertIn(copy.image_caption_en, en.figcaption.get_text())
                 source = original_url(article.url)
-                self.assertEqual([a["href"] for a in en.select(".full a")], [source])
-                chinese_reading_links = [source]
-                if article.translation_url:
-                    chinese_reading_links.append(article.translation_url)
-                self.assertEqual([a["href"] for a in zh.select(".full a")], chinese_reading_links)
+                for card, reason in ((zh, article.draft.reason), (en, copy.reason_en)):
+                    self.assertEqual([a["href"] for a in card.select(".full a")], [source])
+                    lead = card.h3.find_next_sibling("p")
+                    self.assertEqual(lead.get_text(), reason)
+                    self.assertTrue(lead.strong.get_text(strip=True))
+                    self.assertTrue(reason.startswith(lead.strong.get_text()))
+                    self.assertIsNone(lead.find_parent("details"))
                 evidence_links = "p:not(.full) a, figcaption a"
                 self.assertEqual(
                     [a["href"] for a in en.select(evidence_links)],
@@ -92,7 +94,7 @@ class ReadingLanguageTest(unittest.TestCase):
             chinese_alternate('<link rel="alternate" hreflang="zh" href="/story/">', url)
         )
 
-    def test_article_links_only_to_the_original_and_available_official_translation(self):
+    def test_article_links_only_to_the_original_even_with_an_archived_translation(self):
         url = "https://www.anthropic.com/research/components-of-agent-memory"
         draft = MobileDraft(
             topic="记忆系统",
@@ -120,11 +122,8 @@ class ReadingLanguageTest(unittest.TestCase):
             article.translation_url = translated
             with self.subTest(translated=translated):
                 doc = BeautifulSoup(str(article_html(article_md(article))), "html.parser")
-                expected = [("英文原文", url)]
-                if translated:
-                    expected.append(("官方中文译文", translated))
                 self.assertEqual(
-                    [(a.get_text(), a["href"]) for a in doc.select(".full a")], expected
+                    [(a.get_text(), a["href"]) for a in doc.select(".full a")], [("阅读原文", url)]
                 )
                 self.assertIsNone(doc.select_one(".full button"))
                 _, summary, thinking = doc.select("h3")

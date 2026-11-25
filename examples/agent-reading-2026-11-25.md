@@ -1,81 +1,79 @@
 # Agent 系统日报 · 2026-11-25
 
-*首次入选*　**航班清单**　2026-10-30　arXiv
+*首次入选*　**长程任务**　2026-11-20　METR
 
-## Fidelity Collapses with Table Size, Not Turn Count: Delivery Architecture in a Deployed Tool-Using Agent
-
-### 核心看点
-
-订票助手查到了航班，为什么最后给你的清单还会错？研究者让助手挑出下午起飞的航班。清单越长，模型重新列出结果时越容易出错；让模型只说筛选条件，由程序直接交付符合条件的航班，这组实验里 93 次都答对了。
-
-### 内容摘要
-
-研究者保存了六条航线的查询结果。每次从同一张表的开头多取一些航班，再问同一个问题。这样就能单独观察清单变长的影响。
-
-让 Gemini 2.5 Flash 自己列出航班时，输入 5 行，83% 的回答拿到满分；输入 100 行，只有 6%。差距在第一次筛选时就出现了。 [原文章节](https://arxiv.org/html/2611.00442v1#S5.SS1.SSS0.Px1)
-
-![随行数增加，橙色模型转述曲线下降，蓝色直接交付曲线保持在 100%。](figures/originals/677db8c639baf2bab57df4384d153ad562d49688a6e16a373f44c9ad9cb07281.png)
-
-**图 2 · 工具结果表变长时，交付准确率如何变化**　同一份结果按行扩展。六条航线汇总后，Flash 转述组在 100 行时的准确率降至 6%，直接交付组的 93 次运行均正确。阴影为 95% Wilson 区间。 [arXiv 原图出处](https://arxiv.org/html/2611.00442v1#S5.F2)
-
-### 延伸思考
-
-直接交付清单的方案还做了另一件事：它把原始记录保存在会话里。实验测到的是两项改动加在一起的效果。 [原文章节](https://arxiv.org/html/2611.00442v1#Sx1.SS0.SSS0.Px4)
-
-下次看助手演示订票或查库存，可以让它处理一张长表，把最终清单和工具查到的记录逐行对一遍。屏幕上的“查询成功”只回答了前半个问题。
-
-[英文原文](https://arxiv.org/html/2611.00442v1)
-
-*再度入选*　**工具权限**　2026-11-18　OpenAI
-
-## Inside the Codex sandbox
+## AI R&D-relevant model capabilities are improving rapidly and are getting harder to measure
 
 ### 核心看点
 
-给编程助手装一个记笔记的工具，它能改动电脑上的哪些文件？在 Codex 里，按文中的默认方式接入这个本地工具，它就有了和你一样的文件与联网权限。作者让它照样能记笔记，却只能写两个指定目录，连网也用不着。
-
-> 上次入选于 2026-11-21
+**METR 用专家完成同一道题所需的工时衡量任务长度，发现 Agent 有五成把握做完的任务，约每 3.6 个月翻一倍**。换成需要自己判断研究方向的工作，单看这条曲线，很难估计 Agent 究竟能接手多少。
 
 ### 内容摘要
 
-这个记忆工具通过 MCP 接入 Codex，在你的电脑上作为单独的程序运行。文章考察的是一种叫 stdio 的本地连接方式。作者先建好笔记目录，把指定版本的软件包下载到缓存，再把工具放进沙箱，也就是一个限制程序权限的运行环境。
+研究者先估算专家要花多少工时才能达到指定成绩，再看每一代模型在多长的任务上仍有一半机会达到同一成绩。
 
-下次启动时，工具从缓存读软件包，把笔记存进数据目录。即使关闭网络、只允许写入缓存和数据目录，它也能启动。 [定位原句](https://openai.com/en-US/index/inside-the-codex-sandbox/#:~:text=without%20network%20access%2C%20with%20writes%20limited%20to%20the%20npm%20cache%20and%20the%20server%E2%80%99s%20data%20directory)
+合并新旧两套测试，翻倍时间估计为 3.61 个月，95% 置信区间为 2.08 至 4.94 个月。这里的“小时”指专家工时。模型本身可能跑得快得多。 [原文章节](https://metr.org/blog/2026-11-20-q4-2026-capability-update/#3c1-across-th11-and-th2-we-find-that-capabilities-are-doubling-roughly-every-36-months)
 
-![流程图中，配置和管理员设定的约束共同确定会话权限配置。Codex 据此在 macOS、Linux 或 Windows 的沙箱中启动命令。子进程继承限制，可选的网络代理按域名规则筛选请求。](figures/originals/74f94b4b39f0ed4ee3ac375a02fef9debf378e8fde8f3e36db6d8c15258c4e88.webp)
+![左侧拟合线随模型发布日期向上，右侧翻倍时间的分布集中在 3.6 个月左右。](figures/originals/cbcd5d82c2e351217a105cb0fb0af5cd5b82c40e6c14d68270cac9f5606e8b54.webp)
 
-**Codex 如何把权限配置应用到命令**　Codex 按会话权限配置启动命令，子进程继承沙箱限制。启用网络代理时，由代理执行域名规则。 [OpenAI 原图出处](https://openai.com/en-US/index/inside-the-codex-sandbox/)
+**原文图 10 · 有五成把握完成的任务有多长**　左图按模型发布日期排列，纵轴是完成同一任务所需的人类工时。右图给出重复抽样得到的翻倍时间分布。来源：METR，CC BY。 [METR 原图出处](https://metr.org/blog/2026-11-20-q4-2026-capability-update/#3c1-across-th11-and-th2-we-find-that-capabilities-are-doubling-roughly-every-36-months)
 
 ### 延伸思考
 
-Codex 单凭启动命令，推断不出一个工具为了工作需要哪些文件或网络服务。这些权限要由接入工具的人决定。 [原文章节](https://openai.com/en-US/index/inside-the-codex-sandbox/#example-sandboxing-an-mcp-server)
+METR 请模型设计短时间内难以判断好坏的评测题，模型仍倾向于出能自动算分的优化题。交上来的题，没有一道被 METR 用进这份报告。 [原文章节](https://metr.org/blog/2026-11-20-q4-2026-capability-update/#3b2-on-domains-where-the-true-quality-of-a-solution-is-hard-for-the-agent-to-determine-due-to-prohibitively-long-feedback-loops-or-requirements-that-the-solution-generalize-models-appear-to-have-worse-judgment-than-human-experts)
 
-看一个工具的安装说明时，可以找两个答案：我的笔记会存在哪里？它还被允许写到哪里？前者告诉你去哪儿找笔记，后者才告诉你一次误操作可能波及什么。
+优化代码可以马上计时，判断研究方向是否有价值可能要等很久。读增长曲线时，人类工时本身也有不确定性。这份报告里只有约 9% 的工时估计直接用了人员实测。
 
-[英文原文](https://openai.com/en-US/index/inside-the-codex-sandbox/)　[官方中文译文](https://openai.com/zh-Hans-CN/index/inside-the-codex-sandbox/)
+[阅读原文](https://metr.org/blog/2026-11-20-q4-2026-capability-update/)
 
-*首次入选*　**跨文档问答**　2026-10-28　LangChain
+*首次入选*　**经验记忆**　2026-11-10　arXiv
 
-## Building Evidence-Grounded Agent Memory with OpenWiki and Graphs
+## Don’t Just Trust Your Memory: Evidence-Linked Memory Reduces Memory-Induced Degradation in LLM Agents
 
 ### 核心看点
 
-假设一份保单有了补充条款，原来的约定还算数吗？搜到旧条款很容易，弄清哪一条改了哪一条才难。在模拟保险文档上，事先把条款关系整理成一本可查的手册，助手更会回答这类问题；只查一段原文时，直接搜索反而更快，得分也相近。
+**给 Agent 同一份经验笔记，让它回查当时做过什么，它就更少把原本会做的题做错**。五套基准共八组测试中，拿到原始记录和回查提示的 Agent，平均比只看笔记多得 3.2 分。
 
 ### 内容摘要
 
-研究者用 111 份模拟文档编了两类题：80 道只需找到一段话，50 道要把不同文件里的线索连起来。同一个助手做跨文档题，直接搜索得 0.10 分，有了手册得 0.52 分，满分为 1。
+一条旧笔记说，把物品放在亮灯旁就算完成任务。轮到检查花瓶，Agent 只开灯就交差。它本来知道要先拿起花瓶。
 
-再把手册里的说法逐条连回原文段落，得分升到 0.66。同一道题问三遍，答案引用相同证据的程度也翻了一倍。 [定位原句](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Accuracy%20rose%2027%25%2C%20citation%20consistency%20doubled)
+WikiTrace 给每条经验连上产生它的原始操作和对这次成败的解释。作者比较了拿到相同经验的两组，既看新做对多少题，也查原来会做的题又错了多少。 [原文章节](https://arxiv.org/html/2611.14320v1#S3.SS2)
 
-![原文四幅柱状图比较仅搜索、只用 wiki 及 wiki 加证据图的正确率、引用一致性、每个正确回答的成本和中位回答时间。](figures/originals/89f2c95cd73d5cdcf8e73fc98cc2ec6685f15155c795b866a54a4489cd86ec0c.png)
+![示意图对比直接套用错误经验的失败路径和回查原始轨迹后的修订路径。](figures/originals/60f9c71eec043062b3e93e53f37cfc5c89af21d8a7cc492adc846066a4ff29f4.png)
 
-**三种记忆方案怎样回答跨文档查询**　作者比较了三种方案。从单用 wiki 到加入证据图，正确率从 0.52 升到 0.66，中位回答时间从 30 秒降到 18 秒。 [LangChain 原图出处](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Better%20accuracy%2C%20lower%20cost%2C%20faster%20answers)
+**原文图 1 · 一条经验怎样把 Agent 带偏**　上半部列出记忆里的错误、超出适用范围及误用。下半部展示 Agent 沿链接回到原始记录，核查并改正经验。 原图作者为 Yukyeong Lee 等人（CC BY 4.0）。 [arXiv 原图出处](https://arxiv.org/html/2611.14320v1#S1.F1)
 
 ### 延伸思考
 
-这项测试把“答得对”和“三次回答引用了相同段落”分开计分。一个助手完全可能每次都引用同一条旧规定，给出同一个错答。 [定位原句](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=whether%20the%20agent%20reliably%20grounds%20its%20answers%20in%20the%20same%20sources)
+如果只报总分，新增的正确答案可能盖住被坏经验教错的旧题。测试记忆功能时，可以留一组助手原先稳定做对的任务，专门数它学坏了多少。 [原文章节](https://arxiv.org/html/2611.14320v1#S5.SS4)
 
-下次让助手解释一份改过的合同，可以请它同时找出原条款和修改它的那段文字。两段放在一起，你才有材料自己判断哪一条适用。
+这次实验中，带回查的系统每题平均推理成本比只给经验高 17%。如果笔记多到无法一次全部给模型，每道题该找出哪些笔记，还有待验证。
 
-[英文原文](https://www.langchain.com/blog/building-agent-memory-openwiki-graphs)
+[阅读原文](https://arxiv.org/html/2611.14320v1)
+
+*首次入选*　**自我改进**　2026-11-01　arXiv
+
+## RSI-Env: An Open-Ended Environment for Recursive Self-Improvement of Agents
+
+### 核心看点
+
+**一次实验中，Agent 连续改进自己两轮，事实问答更准了，科学推理却退步了**。事实问答正确率从 82% 升到 85%，再到 88%，科学推理正确率则从最初的 65.2% 降到最终的 53.0%。
+
+### 内容摘要
+
+第一轮，Agent 只改了模型周围调用工具、执行任务的程序，模型参数没动。第二轮，这个新版本自己写出 48 条训练样本，再用它们训练模型。
+
+作者在固定的 500 道 SimpleQA 事实题上评估，每题做三次取平均，才得到 82%、85%、88% 这三个数。 [原文章节](https://arxiv.org/html/2611.01736v1#S4.SS5)
+
+![框架图由控制器、受控接口和工作环境组成，底部箭头从已接受的版本回到下一轮。](figures/originals/12d42f106ab8c1081e27e5fcc43e506f663f17c01e2a2720aef715f05f01ccbc.png)
+
+**原文图 1 · 改过的系统怎样接手下一轮**　右侧的当前版本包括模型和可编辑的运行程序。底部的回路表示已接受的版本进入下一轮。左侧的控制器独立管理版本和评估。 [arXiv 原图出处](https://arxiv.org/html/2611.01736v1#S2.F1)
+
+### 延伸思考
+
+第一轮改出来的版本亲自完成了第二轮，这才让我们看见自我改进如何延续。两次进步之后，下一代还能找出管用的改动吗？ [原文章节](https://arxiv.org/html/2611.01736v1#S4.SS2)
+
+另一个值得看的数字是它在其他科目丢了多少分。科学推理的回落提醒我们，看自我改进演示时，要同时看目标任务和原先就会的任务。
+
+[阅读原文](https://arxiv.org/html/2611.01736v1)

@@ -6,7 +6,7 @@ from ai_buzz_radar.blogs import Source
 from ai_buzz_radar.editions import extract
 from ai_buzz_radar.publisher_images import image_candidates
 from ai_buzz_radar.research_sources import (
-    DEVELOPER_SOURCES,
+    LANGCHAIN,
     arxiv_candidates,
     arxiv_query_url,
     discover_editions,
@@ -46,7 +46,7 @@ class ResearchSourcesTest(unittest.TestCase):
         <h2 id="loop">The loop</h2><p>Trace errors are inputs for the editors.</p>
         <img src="https://cdn.prod.website-files.com/team/loop.png" alt="Knowledge loop"></div>
         """
-        rows, alerts = discover_editions(DAY, 30, loader, DEVELOPER_SOURCES)
+        rows, alerts = discover_editions(DAY, 30, loader, (LANGCHAIN,))
         self.assertFalse(alerts)
         self.assertEqual([row.title for row in rows], ["knowledge-factory", "last-eligible"])
         self.assertEqual(

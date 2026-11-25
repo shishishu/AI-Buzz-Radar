@@ -49,6 +49,12 @@ class CheckpointTest(unittest.TestCase):
                             reason="证据",
                             section=0,
                             evidence=evidence,
+                            importance=25,
+                            evidence_quality=24,
+                            knowledge_gain=16,
+                            discussion=0,
+                            discussion_index=-1,
+                            classic_reason="",
                         )
                         for url in urls
                     ],
@@ -92,6 +98,7 @@ class CheckpointTest(unittest.TestCase):
             (folder / "index.html").write_text("earlier publication")
             with (
                 patch("ai_buzz_radar.editions.discover", side_effect=discovery),
+                patch("ai_buzz_radar.editions.hn_discussions", return_value=({}, [], [])),
                 patch("ai_buzz_radar.codex_cli.run_cli", side_effect=transport),
             ):
                 for error, message in [
