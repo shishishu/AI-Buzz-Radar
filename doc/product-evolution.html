@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Buzz Radar 版本演进 · v0.1—v1.0</title>
+<style>
+:root {color-scheme:light;--paper:#fbfaf6;--ink:#172c28;--mute:#51645e;--green:#196749;--rule:#d6ded5;--tint:#edf3eb}
+* {box-sizing:border-box}
+body {margin:0;background:var(--paper);color:var(--ink);font:16px/1.85 Inter,"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif}
+a {color:var(--green);text-decoration-thickness:1px;text-underline-offset:.23em}
+a:focus-visible,summary:focus-visible {outline:2px solid var(--green);outline-offset:3px}
+.wrap {max-width:1120px;margin:auto;padding:0 clamp(18px,4.5vw,62px)}
+.cover {border-top:5px solid var(--green);border-bottom:1px solid var(--rule);padding:clamp(24px,4vw,54px) 0 29px}
+.brand {margin:0;color:var(--green);font-weight:700;letter-spacing:.04em}
+h1 {font-size:clamp(38px,5vw,64px);line-height:1.16;letter-spacing:-.04em;margin:9px 0 14px}
+.period,.meta {color:var(--mute);font-size:14px;font-variant-numeric:tabular-nums}
+.intro {max-width:46em;margin:17px 0 0}
+.layout {display:grid;grid-template-columns:184px minmax(0,1fr);gap:clamp(24px,5vw,76px);align-items:start}
+aside {position:sticky;top:16px;padding:22px 0;max-height:calc(100vh - 24px);overflow:auto}
+.nav-title,summary {font-weight:700;color:var(--mute);font-size:14px}
+nav ol {list-style:none;margin:8px 0 0;padding:0}
+nav a {display:block;border-left:2px solid var(--rule);padding:5px 9px;text-decoration:none;color:var(--ink);font-size:14px}
+nav a span {display:inline-block;min-width:41px;font-size:13px;font-variant-numeric:tabular-nums;color:var(--green);font-weight:bold}
+nav a:hover,nav a[aria-current] {background:var(--tint);border-color:var(--green)}
+details {display:none}
+section {padding:30px 0 32px;border-bottom:1px solid var(--rule);scroll-margin-top:12px}
+section:last-child {border-bottom:0}
+.meta {display:flex;align-items:center;gap:12px}
+.meta b {display:inline-block;line-height:1.6;padding:0 7px;border-radius:3px;background:var(--green);color:white;letter-spacing:.03em}
+h2 {font-size:clamp(22px,2.25vw,31px);line-height:1.45;letter-spacing:-.025em;margin:8px 0 14px}
+h3 {font-size:18px;margin:24px 0 9px}
+p {margin:10px 0}
+section p, dd {overflow-wrap:break-word}
+dl {margin:16px 0;border-left:3px solid #92b19d;background:var(--tint);padding:0 16px}
+dl div {padding:11px 0}
+dl div+div {border-top:1px solid var(--rule)}
+dt {font-weight:700;color:var(--green)}
+dd {margin:2px 0 0}
+.source {font-size:14px;color:var(--mute);margin:14px 0 0}
+.source b {margin-right:5px}
+code {font: .92em ui-monospace,monospace}
+table {width:100%;border-collapse:collapse;font-size:15px;text-align:right;font-variant-numeric:tabular-nums;margin:18px 0}
+caption {text-align:left;font-weight:700;margin-bottom:7px}
+th,td {padding:9px 8px;border-bottom:1px solid var(--rule)}
+thead th {color:var(--mute);font-size:14px}
+tr>:first-child {text-align:left}
+tfoot {background:var(--tint);font-weight:700}
+.end {display:block;margin:15px 0 40px;font-size:14px}
+@media(max-width:760px){
+ .layout {display:block}
+ aside {display:none}
+ details {display:block;border-bottom:1px solid var(--rule);padding:9px 0}
+ summary {cursor:pointer;padding:5px 0}
+ details ol {display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;padding:5px 0 8px}
+ nav a {padding-left:6px}
+ section {padding:23px 0}
+ th,td {padding:8px 4px}
+}
+@media(max-width:380px){table,thead th {font-size:12px}details ol {grid-template-columns:1fr}}
+@media print{
+ body {background:white;font-size:10pt;line-height:1.6}
+ .wrap {padding:0;max-width:none}
+ .layout {display:block}
+ aside,details,.end {display:none}
+ .cover {padding:10px 0}
+ h1 {font-size:30pt}h2 {font-size:17pt}
+ section {padding:12pt 0}
+ header,h3,caption {break-after:avoid}
+ dl div,table {break-inside:avoid}
+ .meta b {color:var(--green);background:none;padding:0}
+}
+</style></head>
+<body><main class="wrap" id="top">
+<header class="cover"><p class="brand">AI Buzz Radar</p><h1>版本演进</h1>
+<div class="period">v0.1 — v1.0　·　2026 年 11 月 22—25 日</div>
+<p class="intro">最初的问题是“今天发布了哪些 AI 产品？”四天后，日报每天要回答的是“哪三篇一手材料，值得 Agent 开发者用来做决定？”以下按八次产品决策回溯编号。这些版本是事后标记的产品里程碑，日期按开发与讨论时间记。</p></header>
+<div class="layout"><aside><nav aria-label="版本目录"><div class="nav-title">版本目录</div><ol><li><a href="#v0-1"><span>v0.1</span>Product Hunt 新品</a></li>
+<li><a href="#v0-2"><span>v0.2</span>Agent 技术阅读</a></li>
+<li><a href="#v0-3"><span>v0.3</span>固定每日三篇</a></li>
+<li><a href="#v0-4"><span>v0.4</span>移动阅读改版</a></li>
+<li><a href="#v0-5"><span>v0.5</span>双语与最新一期</a></li>
+<li><a href="#v0-6"><span>v0.6</span>算法研究员试选</a></li>
+<li><a href="#v0-7"><span>v0.7</span>开发者选稿</a></li>
+<li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li></ol></nav></aside>
+<div><details><summary>版本目录</summary><nav aria-label="手机版本目录"><ol><li><a href="#v0-1"><span>v0.1</span>Product Hunt 新品</a></li>
+<li><a href="#v0-2"><span>v0.2</span>Agent 技术阅读</a></li>
+<li><a href="#v0-3"><span>v0.3</span>固定每日三篇</a></li>
+<li><a href="#v0-4"><span>v0.4</span>移动阅读改版</a></li>
+<li><a href="#v0-5"><span>v0.5</span>双语与最新一期</a></li>
+<li><a href="#v0-6"><span>v0.6</span>算法研究员试选</a></li>
+<li><a href="#v0-7"><span>v0.7</span>开发者选稿</a></li>
+<li><a href="#v1-0"><span>v1.0</span>每日编辑流程</a></li></ol></nav></details>
+<section id="v0-1" aria-labelledby="title-v0-1">
+<header><div class="meta"><b>v0.1</b><time datetime="2026-11-22">11 月 22 日</time></div><h2 id="title-v0-1">从 Product Hunt 找到值得看的 AI 新品</h2></header>
+<p>初版每期最多五条，附发布日期、变化、推荐理由和发布页。榜单里仅带 AI 标签的产品也会被召回，于是选稿改为检查日榜前 20 名的发布页，选取前三个能举证核心 AI 能力或实质更新的产品，保留原榜名次。</p>
+<p>这一阶段也加上了匿名阅读事件、查询账本与预算限制。匿名事件留在产品发现原型中，后来技术日报的排序另行设计。</p>
+</section>
+<section id="v0-2" aria-labelledby="title-v0-2">
+<header><div class="meta"><b>v0.2</b><time datetime="2026-11-22">11 月 22 日</time></div><h2 id="title-v0-2">从追踪产品转向读懂技术文章</h2></header>
+<p>为想理解 Agent 系统的读者，另开技术阅读清单。模型查询 Anthropic Engineering、Anthropic Research 和 Lil’Log 的近 30 天目录，读取原文段落，按机制、对照实验或失败分析选 0–3 篇。</p>
+<p>当时的读法是“1 分钟速览 + 1 小时深读路线”。程序检查摘引是否来自读过的段落，后来的摘要和延伸思考沿用了这一证据要求。</p>
+</section>
+<section id="v0-3" aria-labelledby="title-v0-3">
+<header><div class="meta"><b>v0.3</b><time datetime="2026-11-23">11 月 23 日</time></div><h2 id="title-v0-3">把阅读清单做成固定三篇的日报</h2></header>
+<p>固定每期三篇，生成 HTML、Markdown 和结构化 JSON，网页可按日期浏览。11 月 21、22 日刊由编辑指定选题后回填，23 日刊启用自动选题。此时仍保留速览，深读缩为约 15 分钟并折叠。</p>
+<p>恢复出版方原题，将深读分为 Summary 和 Thinking。23 日刊还对照了本地 Codex CLI 与 Responses API。重合选题共用原文节选，编辑可以比较两种方式如何解读相同证据。</p>
+<p class="source"><b>早期记录</b> Git <code>5071a7f</code> → <code>469378b</code> · <code>dc5c5f7</code> · <code>e9db432</code> · <code>c684c02</code>　<a href="../examples/agent-reading-2026-11-23.html">11/23 日报</a> · <a href="../examples/codex-cli/agent-reading-2026-11-23.html">CLI 对照稿</a></p>
+</section>
+<section id="v0-4" aria-labelledby="title-v0-4">
+<header><div class="meta"><b>v0.4</b><time datetime="2026-11-24">11 月 24 日</time></div><h2 id="title-v0-4">让读者在手机上决定要不要读原文</h2></header>
+<p>读者读完摘要仍猜不到全文会讲什么，读完思考也没有新的判断。卡片恢复推荐理由，移去标题下重复的导语和阅读时长，取消“1 分钟速览”。摘要与思考默认展开，标题改用接近正文的黑体。</p>
+<dl><div><dt>推荐理由</dt><dd>说清谁在面临什么问题，读完能帮助做哪项决定。</dd></div><div><dt>内容摘要</dt><dd>交代作者问了什么、怎么检验、发现了什么，以及这些证据能支持多大范围的结论。</dd></div><div><dt>延伸思考</dt><dd>从原文结果推到一个具体取舍，写出读者可以怎样验证它。例如，两次故障诊断一致时，可以再检查它们是否用了同一份证据。</dd></div></dl>
+<p>配图试过自绘，最后改为优先抽取能解释摘要的出版方原图。图二也按英文原文重新核对了语言版本。长图同时受宽度和高度约束，等比缩小，可点开放大。图注可回原文，正文依据优先指向章节锚点，缺少锚点时尝试定位原句。</p>
+<p>“原文”与“中文全文”一度打开相同语言，11/22 的 Google 翻译链接也有读者点不开。最终分别链接原作和出版方提供的官方中文译文。译文入口只在官方版本可核实时显示。Sites 试发后有读者遇到 Cloudflare 拦截，后续在内置浏览器打开本地 HTML 核对。</p>
+</section>
+<section id="v0-5" aria-labelledby="title-v0-5">
+<header><div class="meta"><b>v0.5</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v0-5">首页只留最新三篇，支持中英文阅读</h2></header>
+<p>读者未必每天打开日报。首页聚焦当前三篇，移除归档导航和页尾“最新一期”，保留已分享的日期直链。每天从候选材料重新选，允许好文章留选。曾讨论相邻两三天必须换稿，最终没有设硬性轮换门槛。</p>
+<p>每篇用“首次入选”“连续入选”或“再度入选”标记推荐历史。连续入选可显示第几天。累计推荐次数曾被提议用来表达重要性，最终采用的是入选状态和连续天数。</p>
+<p>默认中文，可切到英文。两种语言都保留原题。英文栏目定为 Why / Summary / Takeaways，替换较抽象的 Relevance / Implications。官方中文译文入口只出现在中文页。署名为“编辑：树先生 &amp; GPT”与“Editor: Mr. Tree with GPT”。</p>
+<p class="source"><b>页面样例</b> <a href="../examples/agent-reading-2026-11-24.html">11/24 手机阅读改版</a> · <a href="../examples/agent-reading-2026-11-25.html">11/25 双语日报</a></p>
+</section>
+<section id="v0-6" aria-labelledby="title-v0-6">
+<header><div class="meta"><b>v0.6</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v0-6">从算法研究员的视角重选</h2></header>
+<p>为避开只列工程跑分的文章，先从算法研究员的角度审视近 30 天的材料，沿着机制、基线和消融问“证据排除了哪些其他解释？”本轮精排不参考往期入选。</p>
+<p>事后可追溯至少 717 个不同的 arXiv ID，其中 712 个来自 Hugging Face 快照，另有 5 个由检索补入。12 篇精读和最终 3 篇全是论文。三个题目分别涉及训练数据标签、工具调用的信用分配、多智能体评测基线。原运行未保存完整检索命中和其余九篇的逐项落选理由。</p>
+</section>
+<section id="v0-7" aria-labelledby="title-v0-7">
+<header><div class="meta"><b>v0.7</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v0-7">面向 Agent 开发者，按证据和决策价值选稿</h2></header>
+<p>读者也需要决定工具怎么交付结果、权限怎么开、记忆值不值得维护。选稿范围扩至论文、技术解析、开发指南和生产复盘。两条渠道各自提名，精读原文后才比较证据和三篇之间的互补性。体裁按文章写法判断，同一站点可以有多种体裁。</p>
+<p>本轮重新召回 10 月 27 日至 11 月 25 日的一手材料。以下 247 篇来自这次独立运行，与上一轮的 717 篇分开计数。</p>
+<table><caption>11 月 25 日选稿漏斗</caption><thead><tr><th scope="col">召回渠道</th><th scope="col">去重召回</th><th scope="col">粗排提名</th><th scope="col">进入精读</th><th scope="col">最终入选</th></tr></thead><tbody><tr><th scope="row">arXiv 索引</th><td>80</td><td>12</td><td>6</td><td>1</td></tr><tr><th scope="row">一手网站索引</th><td>167</td><td>12</td><td>6</td><td>2</td></tr></tbody><tfoot><tr><th scope="row">合计</th><td>247</td><td>24</td><td>12</td><td>3</td></tr></tfoot></table>
+<h3>11 月 25 日入选的三个开发决定</h3>
+<dl><div><dt>工具结果交付 · arXiv</dt><dd>机票查询表变长时，哪些数据该由工具筛选并直接交付，哪些适合由模型转述？</dd></div><div><dt>执行权限 · OpenAI</dt><dd>Codex 执行本地命令时，需要读取哪些目录，写入和联网权限又该怎样限制？</dd></div><div><dt>长期记忆 · LangChain</dt><dd>跨文档查询能从编译 wiki 和证据图中获益多少，何时值得承担维护成本？</dd></div></dl>
+<p>候补的浏览器优化复盘也有成本对照，但它与首篇都讨论如何让中间结果留在模型上下文之外。记忆文章给三席增加了另一项开发决定。</p>
+<p class="source"><b>私有选稿记录</b> <a href="../selection-records/revisions/2026-11-25/f7d5b84a1c4eafe6/2026-11-25.md">算法研究员试选</a> · <a href="../selection-records/2026-11-25.md">开发者重选与候补理由</a></p>
+</section>
+<section id="v1-0" aria-labelledby="title-v1-0">
+<header><div class="meta"><b>v1.0</b><time datetime="2026-11-25">11 月 25 日</time></div><h2 id="title-v1-0">把每日选稿、验收和留档写进程序</h2></header>
+<p>当编辑要求只留在一次对话里，第二天换个会话就很难复现。v1.0 让手动和定时出刊走同一套流程。程序控制可核验的步骤，提示词描述需要判断的标准，每次运行把取舍写进私有记录。</p>
+<dl><div><dt>程序控制的部分</dt><dd>按日读取近 30 天的一手来源，两路分别粗排，合并后最多精读 12 篇，成稿恰好 3 篇。程序核对引文、双语栏目、链接、配图和顺序，验收通过才整体替换首页。往期记录用于生成入选标签。</dd></div><div><dt>模型负责的部分</dt><dd>本地 Codex CLI 使用 gpt-6.2-astra 的 ultra 推理档位。分别阅读候选和原文，说明证据支持哪项开发决定、结论在什么条件下成立，给出候补与组合理由。三席不设体裁配额。若三篇体裁相同，需交代其他体裁是否有合格候补以及取舍理由。</dd></div><div><dt>每天留下的记录</dt><dd>召回数和来源、粗排提名、精读与淘汰理由、原文引证、候补和最终三席，按日写成 JSON 与可读的 Markdown，保存在网页目录之外。同日重选保留上一版，便于并排追查。</dd></div><div><dt>运行与分发</dt><dd>定时器每天北京时间 21:00 触发，出刊进程完成后退出。失败后间隔 15 分钟重试，最多尝试三次。定时任务更新本地 HTML，发布到 Sites 需要单独操作。</dd></div></dl>
+<h3>截至 v1.0，仍留待验证的设想</h3>
+<dl><div><dt>个性化与热度</dt><dd>曾考虑用 X、知乎和微信公众号的讨论发现有价值的文章。当前日报对所有读者采用相同选稿。早期试选用过 Hugging Face 点赞数作为发现论文的线索。</dd></div><div><dt>语音与读者 Agent</dt><dd>曾提出让用户直接听日报，或交给自己的 Agent 深读后反馈。目前已有 Markdown 和结构化 JSON，可作为后续接入材料。语音与面向读者 Agent 的专用分发接口仍在讨论阶段。</dd></div></dl>
+<p class="source"><b>仓库依据</b> <a href="../README.md">运行说明</a> · <a href="../src/ai_buzz_radar/editions.py">每日选稿与校验</a> · <a href="../scripts/install_edition_timer.py">定时器</a> · <a href="../scripts/run_scheduled_edition.py">定时出刊入口</a></p>
+<p class="source"><b>查阅说明</b> 11 月 24–25 日的多轮变更集中在主仓提交 <code>e8086eb</code>。文内所引文件按仓库相对位置链接，私有选稿记录需在留有当日数据的工作区打开。</p>
+</section>
+<a class="end" href="#top">返回顶部 ↑</a></div></div></main>
+<script>
+const chapters = Array.from(document.querySelectorAll('section[id]'));
+const links = document.querySelectorAll('nav a');
+function markChapter() {
+  const current = chapters.filter(section => section.getBoundingClientRect().top <= innerHeight * 0.35).pop() || chapters[0];
+  links.forEach(link => {
+    if (link.hash === '#' + current.id) link.setAttribute('aria-current','location');
+    else link.removeAttribute('aria-current');
+  });
+}
+addEventListener('scroll',markChapter,{passive:true});
+addEventListener('resize',markChapter);
+addEventListener('pageshow',markChapter);
+</script></body></html>
