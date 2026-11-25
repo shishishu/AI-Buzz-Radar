@@ -125,7 +125,8 @@
         "https://openai.com/index/inside-the-codex-sandbox#:~:text=with%20writes%20limited%20to%20the%20npm%20cache",
         "https://openai.com/index/inside-the-codex-sandbox#network-access",
         "https://openai.com/index/inside-the-codex-sandbox#:~:text=When%20use_default%20is%20specified%2C%20the%20harness%20uses%20the"
-      ]
+      ],
+      "translation_url": "https://openai.com/zh-Hans-CN/index/inside-the-codex-sandbox/"
     },
     {
       "title": "Agents aren’t humans (but they kinda are)",
@@ -185,7 +186,8 @@
         "https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=allows%20an%20Agent%20to%20sign%20its%20requests",
         "https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=a%20WAF%20rule%20on%20its%20Hashed%20User%20ID",
         "https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=When%20discussing%20Agent%20Identity%2C%20Web%20Bot%20Auth%20%28WBA%29"
-      ]
+      ],
+      "translation_url": "https://blog.cloudflare.com/zh-cn/trusted-agent-delegation"
     }
   ]
 }

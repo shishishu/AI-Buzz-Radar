@@ -1,9 +1,70 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent 系统日报 · {{ day }}{% if compare %} · {{ engine }}{% endif %} | AI Buzz Radar</title><style>{{ style|safe }}</style></head>
-<body><main><header><a class="brand" href="index.html">AI Buzz Radar</a>
-<details class="archive"><summary>往期日报</summary><nav aria-label="日报存档">{% for date in dates %}
-<a href="agent-reading-{{ date }}.html"{% if date == day %} aria-current="page"{% endif %}>{{ date }}</a>{% endfor %}</nav></details></header>
-<div class="mast"><h1>Agent 系统日报</h1><p><time datetime="{{ day }}">{{ day.strftime('%Y 年 %m 月 %d 日') }}</time> <span>·</span> 3 篇 <span>·</span> 1 分钟速览</p></div>
+<title data-en="Agent Systems Daily · {{ day }}{% if compare %} · {{ engine }}{% endif %} | AI Buzz Radar">Agent 系统日报 · {{ day }}{% if compare %} · {{ engine }}{% endif %} | AI Buzz Radar</title><style>{{ style|safe }}</style></head>
+<body><main><header><a class="brand" href="index.html" data-follow-language>AI Buzz Radar</a>
+{% if english_cards %}<div class="language-switch" role="group" aria-label="阅读语言" data-en-label="Reading language" hidden>
+<button type="button" lang="zh-CN" data-language="zh" aria-pressed="true">中文</button>
+<button type="button" lang="en" data-language="en" aria-pressed="false">English</button></div>{% endif %}</header>
+<div class="mast"><h1 data-en="Agent Systems Daily">Agent 系统日报</h1><p><time datetime="{{ day }}" data-en="{{ day.strftime('%B') }} {{ day.day }}, {{ day.year }}">{{ day.strftime('%Y 年 %m 月 %d 日') }}</time> <span>·</span> <span data-en="{{ cards|length }} articles">{{ cards|length }} 篇</span></p></div>
 {% for card in cards %}<article>{{ card }}</article>{% endfor %}
-<footer><a href="index.html">最新一期</a>{% if compare %}<a href="{{ compare[0] }}">同日对照 · {{ compare[1] }}</a>{% endif %}<a href="#">回到顶部 ↑</a></footer></main></body></html>
+<footer><span data-en="Editor: Mr. Tree with GPT">编辑：树先生 &amp; GPT</span>{% if compare %}<a href="{{ compare[0] }}" data-follow-language data-en="Compare editions · {{ compare[1] }}">同日对照 · {{ compare[1] }}</a>{% endif %}<a href="#" data-en="Back to top ↑">回到顶部 ↑</a></footer></main>
+{% if has_original_images %}
+<dialog class="image-viewer" aria-label="原图" data-en-label="Original figure">
+<form method="dialog"><button autofocus data-en="Close figure">关闭原图</button></form>
+<div class="image-viewport"><img alt=""></div>
+</dialog>
+<script>
+document.querySelector("main").addEventListener("click", event => {
+  const button = event.target.closest(".enlarge-image");
+  if (!button) return;
+  const viewer = document.querySelector(".image-viewer");
+  const thumbnail = button.querySelector("img");
+  const full = viewer.querySelector("img");
+  full.src = thumbnail.currentSrc;
+  full.alt = thumbnail.alt;
+  viewer.showModal();
+  full.parentElement.scrollTo(0, 0);
+});
+</script>
+{% endif %}
+{% if english_cards %}
+<script type="application/json" id="english-cards">{{ english_cards|tojson }}</script>
+<script>
+const english = JSON.parse(document.getElementById("english-cards").textContent);
+const cards = Array.from(document.querySelectorAll("main > article"), (article, i) => {
+  const template = document.createElement("template");
+  template.innerHTML = english[i];
+  const figure = template.content.querySelector("img");
+  if (figure) figure.src = article.querySelector("img").src;
+  return {article, zh: [...article.childNodes], en: [...template.content.childNodes]};
+});
+const labels = [...document.querySelectorAll("[data-en]")].map(node => [node, node.textContent]);
+const ariaLabels = [...document.querySelectorAll("[data-en-label]")].map(node => [node, node.getAttribute("aria-label")]);
+const localLinks = [...document.querySelectorAll("[data-follow-language]")].map(link => [link, link.getAttribute("href")]);
+const switcher = document.querySelector(".language-switch");
+function displayLanguage(language) {
+  const isEnglish = language === "en";
+  for (const card of cards) card.article.replaceChildren(...card[language]);
+  for (const [node, zh] of labels) node.textContent = isEnglish ? node.dataset.en : zh;
+  for (const [node, zh] of ariaLabels) node.setAttribute("aria-label", isEnglish ? node.dataset.enLabel : zh);
+  for (const [link, href] of localLinks) link.setAttribute("href", isEnglish ? href + "?lang=en" : href);
+  for (const button of switcher.querySelectorAll("button")) {
+    button.setAttribute("aria-pressed", String(button.dataset.language === language));
+  }
+  document.documentElement.lang = isEnglish ? "en" : "zh-CN";
+}
+switcher.addEventListener("click", event => {
+  const button = event.target.closest("button[data-language]");
+  if (!button) return;
+  const language = button.dataset.language;
+  displayLanguage(language);
+  const url = new URL(location.href);
+  if (language === "en") url.searchParams.set("lang", "en");
+  else url.searchParams.delete("lang");
+  if (location.protocol === "http:" || location.protocol === "https:") history.replaceState(null, "", url);
+});
+if (new URL(location.href).searchParams.get("lang") === "en") displayLanguage("en");
+switcher.hidden = false;
+</script>
+{% endif %}
+</body></html>

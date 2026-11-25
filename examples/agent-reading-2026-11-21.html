@@ -1,53 +1,61 @@
 <!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agent 系统日报 · 2026-11-21 | AI Buzz Radar</title><style>:root{color-scheme:light;--ink:#222c2b;--pine:#235d50;--muted:#546660;--rule:#cbd6cf;--paper:#faf9f5}
+<title data-en="Agent Systems Daily · 2026-11-21 | AI Buzz Radar">Agent 系统日报 · 2026-11-21 | AI Buzz Radar</title><style>:root{color-scheme:light;--ink:#222c2b;--pine:#235d50;--muted:#546660;--rule:#cbd6cf;--paper:#faf9f5}
 *{box-sizing:border-box}
 body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.8 system-ui,"PingFang SC","Microsoft YaHei",sans-serif}
 main{width:min(47rem,calc(100% - 2.5rem));margin:auto}
 header,footer{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--rule)}
 .brand{font-weight:750;letter-spacing:.015em;text-decoration:none}
-a,summary{color:var(--pine);text-underline-offset:.23em}
-a:focus-visible,summary:focus-visible{outline:2px solid var(--pine);outline-offset:3px}
-.archive{position:relative}.archive summary{cursor:pointer;font-size:.92rem}
-nav{position:absolute;right:0;top:100%;z-index:1;min-width:10rem;max-height:19rem;overflow:auto;padding:.5rem 1rem;background:white;border:1px solid var(--rule);box-shadow:0 6px 18px #27392816}
-nav a{display:block;padding:.25rem 0}nav [aria-current]{font-weight:750}
+a{color:var(--pine);text-underline-offset:.23em}
+a:focus-visible{outline:2px solid var(--pine);outline-offset:3px}
 .mast{padding:2.1rem 0 1.5rem;border-bottom:2px solid var(--pine)}
-h1,h2,h4{line-height:1.35;text-wrap:pretty}
-h1{font:700 clamp(2.35rem,6vw,3.35rem)/1.2 "Songti SC","Noto Serif CJK SC",serif;letter-spacing:-.045em;margin:0 0 .45rem}
+h1,h2,h3{line-height:1.35;text-wrap:pretty}
+h1{font-family:inherit;font-size:clamp(2rem,6vw,3rem);font-weight:700;line-height:1.2;letter-spacing:-.02em;margin:0 0 .45rem}
 .mast p,.meta,footer{font-size:.86rem;color:var(--muted)}.mast span{padding:0 .25rem}
 article{padding:1.65rem 0;border-bottom:1px solid var(--rule);overflow-wrap:anywhere}
 h2{font-size:clamp(1.45rem,3.6vw,2rem);margin:.18rem 0 .65rem;line-height:1.18;letter-spacing:-.025em}p{margin:.52rem 0}
 .meta{margin:0;color:#546475}.meta strong{color:var(--pine)}.full{font-size:.88rem;margin-bottom:0}
-article details{margin:.9rem 0 .65rem;background:#eff3ed;border-left:3px solid #91ad9f;padding:.6rem .95rem}
-article summary{width:fit-content;cursor:pointer;font-weight:650}
-h4{font-size:1.16rem;color:var(--pine);margin:1.2rem 0 .45rem}h4:not(:first-of-type){border-top:1px solid var(--rule);padding-top:1rem}
-details p:has(>a:only-child){font-size:.85rem}
-table{width:100%;border-collapse:collapse;font-size:.93rem}
-td,th{padding:.36rem .55rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--rule)}
-th{color:var(--pine);background:#e0e9df}td:first-child{width:30%}
+.meta em{display:inline-block;padding:.05em .5em;border:1px solid #bdcfc6;border-radius:.3em;background:#edf4ef;color:var(--pine);font-size:.8rem;font-style:normal;font-weight:650;white-space:nowrap}
+article h3{font-size:1.08rem;font-weight:700;color:var(--pine);margin:1.15rem 0 .25rem}
 blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-bottom:2rem}
 @media(max-width:420px){main{width:calc(100% - 2rem)}.mast{padding:1.45rem 0 1rem}article{padding:1.2rem 0}}
 .process{display:flex;flex-wrap:wrap;align-items:stretch;list-style:none;margin:.4rem 0 1rem;padding:0;gap:.3rem}
 .process li{flex:1 1 6rem;display:flex;align-items:center;gap:.4rem;border-radius:.2rem;background:#dfe9df;padding:.55rem .7rem;font-size:.9rem}
 .process li+li::before{content:"→";font-weight:700;color:var(--pine)}
 @media(max-width:480px){.process{display:block}.process li+li{margin-top:.3rem}.process li+li::before{content:"↓"}}
-.percentage{background:linear-gradient(to right,#c4dcca var(--fraction),transparent var(--fraction)) no-repeat .55rem 90% / calc(100% - 1.1rem) .35rem;padding-bottom:.7rem}
+.full{display:flex;flex-wrap:wrap;gap:0 1.25rem;font-size:1rem}
+.full a{display:inline-flex;align-items:center;min-height:44px}
+@media(max-width:480px){h2{line-height:1.32}footer{flex-wrap:wrap}}
+figure{margin:1.25rem 0 1.5rem;padding:1rem 0 .75rem;border-block:1px solid var(--rule)}
+figure img{display:block;width:auto;height:auto;max-width:min(100%,25rem);max-height:min(18rem,36vh);max-height:min(18rem,36svh);margin:0 auto}
+figcaption{margin:.85rem auto 0;font-size:.9375rem;line-height:1.55;color:var(--muted)}
+figcaption strong{color:var(--ink)}
+.publisher-figure img{max-width:100%}
+.enlarge-image{display:block;width:fit-content;max-width:100%;margin:0 auto;border:0;background:transparent;padding:0;cursor:zoom-in}
+.enlarge-image:focus-visible{outline:2px solid var(--pine);outline-offset:4px}
+.image-viewer{padding:0;border:1px solid var(--rule);max-width:calc(100vw - 1rem);background:white}
+.image-viewer::backdrop{background:rgb(0 0 0 / .65)}
+.image-viewer form{display:flex;justify-content:flex-end;border-bottom:1px solid var(--rule)}
+.image-viewer button{padding:.6rem 1rem;background:white;border:0;color:var(--pine);font:inherit;cursor:pointer}
+.image-viewport{max-height:76vh;overflow:auto}
+.image-viewport img{display:block;width:auto;height:auto;max-width:none}
+.language-switch{display:flex;align-items:center;gap:.15rem;border:1px solid var(--rule);border-radius:.45rem;padding:.125rem}
+.language-switch[hidden]{display:none}
+.language-switch button{min-height:2.75rem;padding:.2rem .75rem;border:0;border-radius:.3rem;background:transparent;color:var(--muted);font:inherit;font-size:.9rem;cursor:pointer}
+.language-switch button[aria-pressed="true"]{background:var(--pine);color:white;font-weight:650}
+.language-switch button:focus-visible{outline:2px solid var(--pine);outline-offset:2px}
 </style></head>
-<body><main><header><a class="brand" href="index.html">AI Buzz Radar</a>
-<details class="archive"><summary>往期日报</summary><nav aria-label="日报存档">
-<a href="agent-reading-2026-11-23.html">2026-11-23</a>
-<a href="agent-reading-2026-11-22.html">2026-11-22</a>
-<a href="agent-reading-2026-11-21.html" aria-current="page">2026-11-21</a></nav></details></header>
-<div class="mast"><h1>Agent 系统日报</h1><p><time datetime="2026-11-21">2026 年 11 月 21 日</time> <span>·</span> 3 篇 <span>·</span> 1 分钟速览</p></div>
-<article><p class="meta"><strong>Harness 与训练</strong>　2026-11-20　Hugging Face</p>
+<body><main><header><a class="brand" href="index.html" data-follow-language>AI Buzz Radar</a>
+</header>
+<div class="mast"><h1 data-en="Agent Systems Daily">Agent 系统日报</h1><p><time datetime="2026-11-21" data-en="November 21, 2026">2026 年 11 月 21 日</time> <span>·</span> <span data-en="3 articles">3 篇</span></p></div>
+<article><p class="meta"><em>首次入选</em>　<strong>Harness 与训练</strong>　2026-11-20　Hugging Face</p>
 <h2>Introducing harness adapters: adapt your favorite model to your harness to improve performance and cost</h2>
+<h3>推荐理由</h3>
+<p>团队的工具调用成本已经很高时，这篇文章能帮你估算，为固定编码框架训练适配器究竟值不值。</p>
+<h3>内容摘要</h3>
 <p>在 Pi 编码框架里训练适配器后，同一基础模型在 51 道高难题上的一次通过率从 39.2% 升至 64.7%。换到业务自动化任务，收益落入测量噪声。</p>
-<p><strong>推荐理由</strong>　团队的工具调用成本已经很高时，这篇文章能帮你估算，为固定编码框架训练适配器究竟值不值。</p>
-<details><summary>深读 · 约 15 分钟</summary>
-<h4>Summary</h4>
 <p><strong>让模型在实际使用的框架里训练</strong></p>
-<p>通用模型追求跨场景表现，却未必懂得怎样在你选的代理框架里高效使用工具。作者冻结 Qwen3.8-27B 的基础权重，为三个框架分别训练轻量适配器。训练不另写代理循环，而是让原版框架在沙箱里执行编码任务，由代理服务器记录模型实际生成的词元。奖励以测试判定的正确性为主，再给更高效的工具使用一点额外奖励。</p>
-<p><a href="https://huggingface.co/blog/harness-adapters-at-scale#training-inside-agent-harnesses">定位原文段落 ↗</a></p>
+<p>通用模型追求跨场景表现，却未必懂得怎样在你选的代理框架里高效使用工具。作者冻结 Qwen3.8-27B 的基础权重，为三个框架分别训练轻量适配器。训练不另写代理循环，而是让原版框架在沙箱里执行编码任务，由代理服务器记录模型实际生成的词元。奖励以测试判定的正确性为主，再给更高效的工具使用一点额外奖励。 <a href="https://huggingface.co/blog/harness-adapters-at-scale#training-inside-agent-harnesses">原文章节</a></p>
 <p><strong>一次框架内训练的反馈路径</strong></p>
 <ol class="process">
 <li>原版编码框架执行任务</li>
@@ -56,126 +64,47 @@ blockquote{font-size:.9rem;margin:.6rem 0;color:#795d28}footer{border:0;padding-
 <li>更新框架专用适配器</li>
 </ol>
 <p><strong>同一个 Pi，最难的题多做对了多少</strong></p>
-<p>作者关闭思考模式，让基础版和适配版各做一遍 SWE-bench Pro 最难的 51 题。在 Pi 中，专用适配器把一次通过率从 39.2% 提到 64.7%，新解出 15 题，也丢了原本能解的 2 题。在这套题上，三个框架分别只看两版都解出的题，专用版每题工具调用少 56%–72%；这不是全部任务的总成本降幅。</p>
-<p><a href="https://huggingface.co/blog/harness-adapters-at-scale#final-evaluation-results">定位原文段落 ↗</a></p>
-<p><strong>合并权重怎么选：第 120 步适配器的对照（Terminal-Bench 2.1，每框架 89 题，三框架均值）</strong></p>
-<table>
-<thead>
-<tr>
-<th>对照项</th>
-<th>原文要点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>基础模型</td>
-<td>一次通过率 43.3%；每题 49.2 次工具调用</td>
-</tr>
-<tr>
-<td>每份更新取 ⅓</td>
-<td>一次通过率 49.2%；每题 35.6 次工具调用</td>
-</tr>
-<tr>
-<td>每份更新取 ½</td>
-<td>一次通过率 52.5%；每题 25.9 次工具调用</td>
-</tr>
-<tr>
-<td>每份更新全量相加</td>
-<td>一次通过率 50.0%；每题 13.4 次工具调用</td>
-</tr>
-</tbody>
-</table>
-<p><a href="https://huggingface.co/blog/harness-adapters-at-scale#super-adapter-merging-all-adapters-into-one">图表依据 ↗</a></p>
-<h4>Thinking</h4>
+<p>作者关闭思考模式，让基础版和适配版各做一遍 SWE-bench Pro 最难的 51 题。在 Pi 中，专用适配器把一次通过率从 39.2% 提到 64.7%，新解出 15 题，也丢了原本能解的 2 题。在这套题上，三个框架分别只看两版都解出的题，专用版每题工具调用少 56%–72%；这不是全部任务的总成本降幅。 <a href="https://huggingface.co/blog/harness-adapters-at-scale#final-evaluation-results">原文章节</a></p>
+<figure><img alt="基础模型：一次通过率 43.3%；每题 49.2 次工具调用；每份更新取 ⅓：一次通过率 49.2%；每题 35.6 次工具调用；每份更新取 ½：一次通过率 52.5%；每题 25.9 次工具调用；每份更新全量相加：一次通过率 50.0%；每题 13.4 次工具调用。合并权重怎么选：第 120 步适配器的对照（Terminal-Bench 2.1，每框架 89 题，三框架均值）" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJlZGl0aW9uLXBsb3QiIHJvbGU9ImltZyIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNSIgdmlld0JveD0iMCAwIDMyMCAyNDUiPjx0aXRsZT7lkIjlubbmnYPph43mgI7kuYjpgInvvJrnrKwgMTIwIOatpemAgumFjeWZqOeahOWvueeFp++8iFRlcm1pbmFsLUJlbmNoIDIuMe+8jOavj+ahhuaetiA4OSDpopjvvIzkuInmoYbmnrblnYflgLzvvIk8L3RpdGxlPjxkZXNjPuWfuuehgOaooeWei++8muS4gOasoemAmui/h+eOhyA0My4zJe+8m+avj+mimCA0OS4yIOasoeW3peWFt+iwg+eUqO+8m+avj+S7veabtOaWsOWPliDihZPvvJrkuIDmrKHpgJrov4fnjocgNDkuMiXvvJvmr4/popggMzUuNiDmrKHlt6XlhbfosIPnlKjvvJvmr4/ku73mm7TmlrDlj5Ygwr3vvJrkuIDmrKHpgJrov4fnjocgNTIuNSXvvJvmr4/popggMjUuOSDmrKHlt6XlhbfosIPnlKjvvJvmr4/ku73mm7TmlrDlhajph4/nm7jliqDvvJrkuIDmrKHpgJrov4fnjocgNTAuMCXvvJvmr4/popggMTMuNCDmrKHlt6XlhbfosIPnlKjjgILlkIjlubbmnYPph43mgI7kuYjpgInvvJrnrKwgMTIwIOatpemAgumFjeWZqOeahOWvueeFp++8iFRlcm1pbmFsLUJlbmNoIDIuMe+8jOavj+ahhuaetiA4OSDpopjvvIzkuInmoYbmnrblnYflgLzvvIk8L2Rlc2M+PHRleHQgeD0iNCIgeT0iMTkiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzI0MzMyZiI+5a+554Wn6aG5PC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMTkiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzI0MzMyZiI+6KeC5a+f57uT5p6cPC90ZXh0PjxsaW5lIHgxPSI1IiB5MT0iMjciIHgyPSIzMTUiIHkyPSIyNyIgc3Ryb2tlPSIjYWFiOWIyIiAvPjx0ZXh0IHg9IjQiIHk9IjQ5IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuWfuuehgOaooeWeizwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjQ5IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuS4gOasoemAmui/h+eOhyA0My4zJe+8m+avj+mimDwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjY5IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPjQ5LjIg5qyh5bel5YW36LCD55SoPC90ZXh0PjxsaW5lIHgxPSI1IiB5MT0iODEiIHgyPSIzMTUiIHkyPSI4MSIgc3Ryb2tlPSIjYWFiOWIyIiAvPjx0ZXh0IHg9IjQiIHk9IjEwMSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7mr4/ku73mm7TmlrDlj5Yg4oWTPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMTAxIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuS4gOasoemAmui/h+eOhyA0OS4yJe+8m+avj+mimDwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjEyMSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj4zNS42IOasoeW3peWFt+iwg+eUqDwvdGV4dD48bGluZSB4MT0iNSIgeTE9IjEzMyIgeDI9IjMxNSIgeTI9IjEzMyIgc3Ryb2tlPSIjYWFiOWIyIiAvPjx0ZXh0IHg9IjQiIHk9IjE1MyIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7mr4/ku73mm7TmlrDlj5Ygwr08L3RleHQ+PHRleHQgeD0iMTI4IiB5PSIxNTMiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5LiA5qyh6YCa6L+H546HIDUyLjUl77yb5q+P6aKYPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMTczIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPjI1Ljkg5qyh5bel5YW36LCD55SoPC90ZXh0PjxsaW5lIHgxPSI1IiB5MT0iMTg1IiB4Mj0iMzE1IiB5Mj0iMTg1IiBzdHJva2U9IiNhYWI5YjIiIC8+PHRleHQgeD0iNCIgeT0iMjA1IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuavj+S7veabtOaWsOWFqOmHj+ebuDwvdGV4dD48dGV4dCB4PSI0IiB5PSIyMjUiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5YqgPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMjA1IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuS4gOasoemAmui/h+eOhyA1MC4wJe+8m+avj+mimDwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjIyNSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj4xMy40IOasoeW3peWFt+iwg+eUqDwvdGV4dD48bGluZSB4MT0iNSIgeTE9IjIzNyIgeDI9IjMxNSIgeTI9IjIzNyIgc3Ryb2tlPSIjYWFiOWIyIiAvPjwvc3ZnPg=="/><figcaption><strong>合并权重怎么选：第 120 步适配器的对照（Terminal-Bench 2.1，每框架 89 题，三框架均值）</strong> <a href="https://huggingface.co/blog/harness-adapters-at-scale#super-adapter-merging-all-adapters-into-one">原文章节</a></figcaption></figure>
+
+<h3>延伸思考</h3>
 <p><strong>换掉框架后，还值得为同一个适配器付训练成本吗？</strong></p>
-<p>作者改用 AutomationBench 自带的代理循环，测试了 300 道业务自动化任务。以全部断言通过为准，合并版的一次通过率为 23.7%，基础版为 23.0%，没有显示出明确的迁移收益。选型时，建议先用未参与训练的自家任务，在同一框架内比较通过率和每题开销；如果任务类型和代理循环都要换，就别把编码基准上的收益算进预算。</p>
-<p><a href="https://huggingface.co/blog/harness-adapters-at-scale#evaluation-on-out-of-distribution-tasks-and-setup">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://huggingface.co/blog/harness-adapters-at-scale">阅读原文 ↗</a></p>
-</article><article><p class="meta"><strong>工具与执行</strong>　2026-11-18　OpenAI</p>
+<p>作者改用 AutomationBench 自带的代理循环，测试了 300 道业务自动化任务。以全部断言通过为准，合并版的一次通过率为 23.7%，基础版为 23.0%，没有显示出明确的迁移收益。选型时，建议先用未参与训练的自家任务，在同一框架内比较通过率和每题开销；如果任务类型和代理循环都要换，就别把编码基准上的收益算进预算。 <a href="https://huggingface.co/blog/harness-adapters-at-scale#evaluation-on-out-of-distribution-tasks-and-setup">原文章节</a></p>
+<p class="full"><a href="https://huggingface.co/blog/harness-adapters-at-scale">英文原文</a></p>
+</article><article><p class="meta"><em>首次入选</em>　<strong>工具与执行</strong>　2026-11-18　OpenAI</p>
 <h2>Inside the Codex sandbox</h2>
+<h3>推荐理由</h3>
+<p>如果你的代理能运行 shell、访问密钥或接入 MCP 服务，这篇文章能帮你判断，哪些权限需要分别配置。</p>
+<h3>内容摘要</h3>
 <p>Codex 默认允许修改工作区并阻止联网，却仍可能读到仓库外的敏感文件。接入外部工具时，还要确认它的启动命令是否也受沙箱约束。</p>
-<p><strong>推荐理由</strong>　如果你的代理能运行 shell、访问密钥或接入 MCP 服务，这篇文章能帮你判断，哪些权限需要分别配置。</p>
-<details><summary>深读 · 约 15 分钟</summary>
-<h4>Summary</h4>
 <p><strong>工作区可写，不等于只能读工作区</strong></p>
-<p>Codex 在宿主系统上运行命令，子进程继承同样的限制。以 Git 仓库为工作区时，默认配置允许修改源码，但将 Git 元数据目录和 Codex 配置目录设为只读，并关闭网络。构建工具仍能在系统权限范围内读取仓库外的依赖，命令也因此可能读到敏感文件。若任务不该接触密钥，建议对存放密钥的路径明确设为拒绝访问。</p>
-<p><a href="https://openai.com/index/inside-the-codex-sandbox#choosing-the-sandbox-boundaries">定位原文段落 ↗</a></p>
+<p>Codex 在宿主系统上运行命令，子进程继承同样的限制。以 Git 仓库为工作区时，默认配置允许修改源码，但将 Git 元数据目录和 Codex 配置目录设为只读，并关闭网络。构建工具仍能在系统权限范围内读取仓库外的依赖，命令也因此可能读到敏感文件。若任务不该接触密钥，建议对存放密钥的路径明确设为拒绝访问。 <a href="https://openai.com/en-US/index/inside-the-codex-sandbox/#choosing-the-sandbox-boundaries">原文章节</a></p>
 <p><strong>给 MCP 服务单独套一层沙箱</strong></p>
-<p>Codex 不会自动把通过标准输入输出通信的 MCP 服务放进沙箱，因为它无法可靠推断服务需要访问哪些文件和网络资源。文章以记忆服务为例：作者先建好数据目录并缓存固定版本的依赖，再用单独的权限配置离线启动，把写入范围限定在包缓存和服务数据目录。接入类似服务时，建议单独核对它的读写路径和联网需求。</p>
-<p><a href="https://openai.com/index/inside-the-codex-sandbox#:~:text=with%20writes%20limited%20to%20the%20npm%20cache">定位原文段落 ↗</a></p>
-<p><strong>单条命令的权限请求：执行框架按用户设置裁决</strong></p>
-<table>
-<thead>
-<tr>
-<th>对照项</th>
-<th>原文要点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>沿用默认</td>
-<td>使用当前轮次的沙箱配置</td>
-</tr>
-<tr>
-<td>申请额外权限</td>
-<td>获准后扩大访问范围，但仍在沙箱内运行</td>
-</tr>
-<tr>
-<td>申请沙箱外执行</td>
-<td>获准后在沙箱外运行，不只是放宽某条规则</td>
-</tr>
-</tbody>
-</table>
-<p><a href="https://openai.com/index/inside-the-codex-sandbox#:~:text=When%20use_default%20is%20specified%2C%20the%20harness%20uses%20the">图表依据 ↗</a></p>
-<h4>Thinking</h4>
+<p>Codex 不会自动把通过标准输入输出通信的 MCP 服务放进沙箱，因为它无法可靠推断服务需要访问哪些文件和网络资源。文章以记忆服务为例：作者先建好数据目录并缓存固定版本的依赖，再用单独的权限配置离线启动，把写入范围限定在包缓存和服务数据目录。接入类似服务时，建议单独核对它的读写路径和联网需求。 <a href="https://openai.com/en-US/index/inside-the-codex-sandbox/#:~:text=with%20writes%20limited%20to%20the%20npm%20cache">定位原句</a></p>
+<figure><img alt="沿用默认：使用当前轮次的沙箱配置；申请额外权限：获准后扩大访问范围，但仍在沙箱内运行；申请沙箱外执行：获准后在沙箱外运行，不只是放宽某条规则。单条命令的权限请求：执行框架按用户设置裁决" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJlZGl0aW9uLXBsb3QiIHJvbGU9ImltZyIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNSIgdmlld0JveD0iMCAwIDMyMCAxNzMiPjx0aXRsZT7ljZXmnaHlkb3ku6TnmoTmnYPpmZDor7fmsYLvvJrmiafooYzmoYbmnrbmjInnlKjmiLforr7nva7oo4HlhrM8L3RpdGxlPjxkZXNjPuayv+eUqOm7mOiupO+8muS9v+eUqOW9k+WJjei9ruasoeeahOaymeeusemFjee9ru+8m+eUs+ivt+mineWkluadg+mZkO+8muiOt+WHhuWQjuaJqeWkp+iuv+mXruiMg+WbtO+8jOS9huS7jeWcqOaymeeuseWGhei/kOihjO+8m+eUs+ivt+aymeeuseWkluaJp+ihjO+8muiOt+WHhuWQjuWcqOaymeeuseWklui/kOihjO+8jOS4jeWPquaYr+aUvuWuveafkOadoeinhOWImeOAguWNleadoeWRveS7pOeahOadg+mZkOivt+axgu+8muaJp+ihjOahhuaetuaMieeUqOaIt+iuvue9ruijgeWGszwvZGVzYz48dGV4dCB4PSI0IiB5PSIxOSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMjQzMzJmIj7lr7nnhafpobk8L3RleHQ+PHRleHQgeD0iMTI4IiB5PSIxOSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMjQzMzJmIj7op4Llr5/nu5Pmnpw8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIyNyIgeDI9IjMxNSIgeTI9IjI3IiBzdHJva2U9IiNhYWI5YjIiIC8+PHRleHQgeD0iNCIgeT0iNDkiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5rK/55So6buY6K6kPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iNDkiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5L2/55So5b2T5YmN6L2u5qyh55qE5rKZ566x6YWN572uPC90ZXh0PjxsaW5lIHgxPSI1IiB5MT0iNjEiIHgyPSIzMTUiIHkyPSI2MSIgc3Ryb2tlPSIjYWFiOWIyIiAvPjx0ZXh0IHg9IjQiIHk9IjgxIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPueUs+ivt+mineWkluadg+mZkDwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjgxIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuiOt+WHhuWQjuaJqeWkp+iuv+mXruiMg+WbtO+8jOS9hjwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjEwMSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7ku43lnKjmspnnrrHlhoXov5DooYw8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIxMTMiIHgyPSIzMTUiIHkyPSIxMTMiIHN0cm9rZT0iI2FhYjliMiIgLz48dGV4dCB4PSI0IiB5PSIxMzMiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+55Sz6K+35rKZ566x5aSW5omn6KGMPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMTMzIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuiOt+WHhuWQjuWcqOaymeeuseWklui/kOihjO+8jOS4jTwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjE1MyIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7lj6rmmK/mlL7lrr3mn5DmnaHop4TliJk8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIxNjUiIHgyPSIzMTUiIHkyPSIxNjUiIHN0cm9rZT0iI2FhYjliMiIgLz48L3N2Zz4="/><figcaption><strong>单条命令的权限请求：执行框架按用户设置裁决</strong> <a href="https://openai.com/en-US/index/inside-the-codex-sandbox/#:~:text=When%20use_default%20is%20specified%2C%20the%20harness%20uses%20the">定位原句</a></figcaption></figure>
+
+<h3>延伸思考</h3>
 <p><strong>如何验证同一条权限规则在三种系统上都有效？</strong></p>
-<p>Codex 在三个平台上共用一套启动接口，但由各自的系统机制执行限制：macOS 用 Seatbelt，Linux 结合 bubblewrap 和系统调用过滤，Windows 正在兼容设备上转向 MXC。文章指出，Windows 在代理模式下会阻止直接连接外部主机，但宿主机的回环服务仍可访问。如果也要隔离本机开发服务，建议在目标系统上验证，别只检查外网是否被挡住。</p>
-<p><a href="https://openai.com/index/inside-the-codex-sandbox#network-access">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://openai.com/index/inside-the-codex-sandbox">阅读原文 ↗</a></p>
-</article><article><p class="meta"><strong>身份与授权</strong>　2026-11-05　Cloudflare</p>
+<p>Codex 在三个平台上共用一套启动接口，但由各自的系统机制执行限制：macOS 用 Seatbelt，Linux 结合 bubblewrap 和系统调用过滤，Windows 正在兼容设备上转向 MXC。文章指出，Windows 在代理模式下会阻止直接连接外部主机，但宿主机的回环服务仍可访问。如果也要隔离本机开发服务，建议在目标系统上验证，别只检查外网是否被挡住。 <a href="https://openai.com/en-US/index/inside-the-codex-sandbox/#network-access">原文章节</a></p>
+<p class="full"><a href="https://openai.com/en-US/index/inside-the-codex-sandbox/">英文原文</a>　<a href="https://openai.com/zh-Hans-CN/index/inside-the-codex-sandbox/">官方中文译文</a></p>
+</article><article><p class="meta"><em>首次入选</em>　<strong>身份与授权</strong>　2026-11-05　Cloudflare</p>
 <h2>Agents aren’t humans (but they kinda are)</h2>
+<h3>推荐理由</h3>
+<p>适合正在做账号风控的工程师。按代理封禁可能影响它服务的所有人，原文拆开了账号归属、请求签名和用户授权。</p>
+<h3>内容摘要</h3>
 <p>云端代理替多人访问网站，认出代理不等于知道它代表谁。网站可以按操作风险索取必要信息，在能区分账号时只限制涉事账号，而不是封掉整个代理。</p>
-<p><strong>推荐理由</strong>　适合正在做账号风控的工程师。按代理封禁可能影响它服务的所有人，原文拆开了账号归属、请求签名和用户授权。</p>
-<details><summary>深读 · 约 15 分钟</summary>
-<h4>Summary</h4>
 <p><strong>为什么封代理会误伤用户</strong></p>
-<p>文章用一名替四位客户跑腿的助理说明共享代理的难题：一位客户让她买手机，事后却否认授权。商家只见过助理，很难证明是谁下的单。银行也面临类似困境：当其中一人的行为触发风控，封掉助理会连带挡住另外三人。对网站来说，认出代理只是第一步；处理争议还得分清它这次代表谁，以及谁应为这次操作负责。</p>
-<p><a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=the%20only%20person%20it%20can%20ban">定位原文段落 ↗</a></p>
+<p>文章用一名替四位客户跑腿的助理说明共享代理的难题：一位客户让她买手机，事后却否认授权。商家只见过助理，很难证明是谁下的单。银行也面临类似困境：当其中一人的行为触发风控，封掉助理会连带挡住另外三人。对网站来说，认出代理只是第一步；处理争议还得分清它这次代表谁，以及谁应为这次操作负责。 <a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=the%20only%20person%20it%20can%20ban">定位原句</a></p>
 <p><strong>代理签名能证明什么</strong></p>
-<p>Cloudflare 建议把代理身份和用户身份分开。Web Bot Auth 让代理签署请求，网站据此识别代理及其运营方，却不能只凭签名知道代理在替谁办事。用户侧只需按操作风险披露必要信息：有时网站只需要判断请求是否可信，不必知道用户是谁。如果一次访问经过多个代理或云浏览器，如何让网站识别整条中介链，仍有待定义。</p>
-<p><a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=allows%20an%20Agent%20to%20sign%20its%20requests">定位原文段落 ↗</a></p>
-<p><strong>用户身份披露四档：网站能把哪些请求关联起来</strong></p>
-<table>
-<thead>
-<tr>
-<th>对照项</th>
-<th>原文要点</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>无标识</td>
-<td>不提供用户标识</td>
-</tr>
-<tr>
-<td>会话级</td>
-<td>只关联同一会话内的请求，可累积会话信誉</td>
-</tr>
-<tr>
-<td>账号级</td>
-<td>跨会话识别同一账号，可绑定网站账号与代理账号</td>
-</tr>
-<tr>
-<td>个人级</td>
-<td>跨运营方识别同一人，可用于高风险操作</td>
-</tr>
-</tbody>
-</table>
-<p><a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=When%20discussing%20Agent%20Identity%2C%20Web%20Bot%20Auth%20%28WBA%29">图表依据 ↗</a></p>
-<h4>Thinking</h4>
+<p>Cloudflare 建议把代理身份和用户身份分开。Web Bot Auth 让代理签署请求，网站据此识别代理及其运营方，却不能只凭签名知道代理在替谁办事。用户侧只需按操作风险披露必要信息：有时网站只需要判断请求是否可信，不必知道用户是谁。如果一次访问经过多个代理或云浏览器，如何让网站识别整条中介链，仍有待定义。 <a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=allows%20an%20Agent%20to%20sign%20its%20requests">定位原句</a></p>
+<figure><img alt="无标识：不提供用户标识；会话级：只关联同一会话内的请求，可累积会话信誉；账号级：跨会话识别同一账号，可绑定网站账号与代理账号；个人级：跨运营方识别同一人，可用于高风险操作。用户身份披露四档：网站能把哪些请求关联起来" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGNsYXNzPSJlZGl0aW9uLXBsb3QiIHJvbGU9ImltZyIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNSIgdmlld0JveD0iMCAwIDMyMCAyMjUiPjx0aXRsZT7nlKjmiLfouqvku73miqvpnLLlm5vmoaPvvJrnvZHnq5nog73miorlk6rkupvor7fmsYLlhbPogZTotbfmnaU8L3RpdGxlPjxkZXNjPuaXoOagh+ivhu+8muS4jeaPkOS+m+eUqOaIt+agh+ivhu+8m+S8muivnee6p++8muWPquWFs+iBlOWQjOS4gOS8muivneWGheeahOivt+axgu+8jOWPr+e0r+enr+S8muivneS/oeiqie+8m+i0puWPt+e6p++8mui3qOS8muivneivhuWIq+WQjOS4gOi0puWPt++8jOWPr+e7keWumue9keermei0puWPt+S4juS7o+eQhui0puWPt++8m+S4quS6uue6p++8mui3qOi/kOiQpeaWueivhuWIq+WQjOS4gOS6uu+8jOWPr+eUqOS6jumrmOmjjumZqeaTjeS9nOOAgueUqOaIt+i6q+S7veaKq+mcsuWbm+aho++8mue9keermeiDveaKiuWTquS6m+ivt+axguWFs+iBlOi1t+adpTwvZGVzYz48dGV4dCB4PSI0IiB5PSIxOSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMjQzMzJmIj7lr7nnhafpobk8L3RleHQ+PHRleHQgeD0iMTI4IiB5PSIxOSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMjQzMzJmIj7op4Llr5/nu5Pmnpw8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIyNyIgeDI9IjMxNSIgeTI9IjI3IiBzdHJva2U9IiNhYWI5YjIiIC8+PHRleHQgeD0iNCIgeT0iNDkiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5peg5qCH6K+GPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iNDkiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5LiN5o+Q5L6b55So5oi35qCH6K+GPC90ZXh0PjxsaW5lIHgxPSI1IiB5MT0iNjEiIHgyPSIzMTUiIHkyPSI2MSIgc3Ryb2tlPSIjYWFiOWIyIiAvPjx0ZXh0IHg9IjQiIHk9IjgxIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuS8muivnee6pzwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjgxIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPuWPquWFs+iBlOWQjOS4gOS8muivneWGheeahOivt+axgjwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjEwMSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7vvIzlj6/ntK/np6/kvJror53kv6Hoqok8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIxMTMiIHgyPSIzMTUiIHkyPSIxMTMiIHN0cm9rZT0iI2FhYjliMiIgLz48dGV4dCB4PSI0IiB5PSIxMzMiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+6LSm5Y+357qnPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMTMzIiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPui3qOS8muivneivhuWIq+WQjOS4gOi0puWPt++8jOWPrzwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjE1MyIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7nu5HlrprnvZHnq5notKblj7fkuI7ku6PnkIbotKblj7c8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIxNjUiIHgyPSIzMTUiIHkyPSIxNjUiIHN0cm9rZT0iI2FhYjliMiIgLz48dGV4dCB4PSI0IiB5PSIxODUiIHRleHQtYW5jaG9yPSJzdGFydCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iIzI0MzMyZiI+5Liq5Lq657qnPC90ZXh0Pjx0ZXh0IHg9IjEyOCIgeT0iMTg1IiB0ZXh0LWFuY2hvcj0ic3RhcnQiIGZvbnQtd2VpZ2h0PSI0MDAiIGZpbGw9IiMyNDMzMmYiPui3qOi/kOiQpeaWueivhuWIq+WQjOS4gOS6uu+8jOWPrzwvdGV4dD48dGV4dCB4PSIxMjgiIHk9IjIwNSIgdGV4dC1hbmNob3I9InN0YXJ0IiBmb250LXdlaWdodD0iNDAwIiBmaWxsPSIjMjQzMzJmIj7nlKjkuo7pq5jpo47pmanmk43kvZw8L3RleHQ+PGxpbmUgeDE9IjUiIHkxPSIyMTciIHgyPSIzMTUiIHkyPSIyMTciIHN0cm9rZT0iI2FhYjliMiIgLz48L3N2Zz4="/><figcaption><strong>用户身份披露四档：网站能把哪些请求关联起来</strong> <a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=When%20discussing%20Agent%20Identity%2C%20Web%20Bot%20Auth%20%28WBA%29">定位原句</a></figcaption></figure>
+
+<h3>延伸思考</h3>
 <p><strong>一个账号违规时，封禁应该落在哪一层？</strong></p>
-<p>据 Cloudflare 介绍，客户已能按代理查看流量并设置访问规则。开通账号滥用防护早期访问的站点，还能在登录和注册时识别代理；某个账号被滥用时，可以用防火墙规则按用户哈希标识处置，不必封掉整个代理。落地时可先用这些信号缩小封禁范围；如果用户对付款提出争议，仍需另行确认授权，不能把识别出账号当成授权凭证。</p>
-<p><a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=a%20WAF%20rule%20on%20its%20Hashed%20User%20ID">定位原文段落 ↗</a></p>
-</details><p class="full"><a href="https://blog.cloudflare.com/trusted-agent-delegation/">阅读原文 ↗</a></p>
+<p>据 Cloudflare 介绍，客户已能按代理查看流量并设置访问规则。开通账号滥用防护早期访问的站点，还能在登录和注册时识别代理；某个账号被滥用时，可以用防火墙规则按用户哈希标识处置，不必封掉整个代理。落地时可先用这些信号缩小封禁范围；如果用户对付款提出争议，仍需另行确认授权，不能把识别出账号当成授权凭证。 <a href="https://blog.cloudflare.com/trusted-agent-delegation/#:~:text=a%20WAF%20rule%20on%20its%20Hashed%20User%20ID">定位原句</a></p>
+<p class="full"><a href="https://blog.cloudflare.com/trusted-agent-delegation/">英文原文</a>　<a href="https://blog.cloudflare.com/zh-cn/trusted-agent-delegation">官方中文译文</a></p>
 </article>
-<footer><a href="index.html">最新一期</a><a href="#">回到顶部 ↑</a></footer></main></body></html>
+<footer><span data-en="Mr.Tree with GPT">编辑：树先生 &amp; GPT</span><a href="#" data-en="Back to top ↑">回到顶部 ↑</a></footer></main>
+
+
+</body></html>

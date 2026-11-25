@@ -142,15 +142,31 @@ def main(argv: list[str] | None = None) -> int:
     )
     edition = commands.add_parser("edition", help="Publish a three-article Agent Systems edition")
     edition.add_argument("--day", type=date.fromisoformat)
+    edition.add_argument(
+        "--reselect", action="store_true", help="Select again and keep the previous edition record"
+    )
     edition.add_argument("--daily", action="store_true", help="Run a daily edition worker")
     edition.add_argument("--hour", type=int, default=21, help="Publication hour in Asia/Shanghai")
     edition.add_argument("--output", type=Path, default=Path("examples"))
     edition.add_argument(
+        "--engine",
+        choices=("codex", "responses"),
+        default="codex",
+        help="Selection and writing engine (default: locally authenticated Codex CLI)",
+    )
+    edition.add_argument(
         "--pick", action="append", default=[], help="Reviewed source URL (supply three)"
     )
     edition.add_argument(
-        "--budget-usd", type=parse_budget, default=os.getenv("RADAR_BUDGET_USD", "1")
+        "--budget-usd",
+        type=parse_budget,
+        default=os.getenv("RADAR_BUDGET_USD", "1"),
+        help="Cumulative dollar budget for the optional Responses API engine",
     )
+    selection = commands.add_parser("selection", help="Read the saved daily selection record")
+    selection.add_argument("--day", type=date.fromisoformat)
+    selection.add_argument("--output", type=Path, default=Path("examples"))
+    selection.add_argument("--format", choices=("json", "markdown"), default="json")
     daily = commands.add_parser("daily", parents=[generation], help="Refresh the feed daily")
     daily.add_argument("--hour", type=int, default=21, help="Hour in Asia/Shanghai (default: 21)")
     show = commands.add_parser("show", help="Print saved feed items as JSON")
@@ -167,6 +183,18 @@ def main(argv: list[str] | None = None) -> int:
         from ai_buzz_radar.web import create_app
 
         create_app(args.db).run(host="127.0.0.1", port=args.port)
+        return 0
+
+    if args.command == "selection":
+        from ai_buzz_radar.selection_log import selection_log_path
+
+        day = args.day or datetime.now(TIMEZONE).date()
+        path = selection_log_path(args.output, day)
+        if args.format == "markdown":
+            path = path.with_suffix(".md")
+        if not path.is_file():
+            parser.exit(1, f"No saved {args.format} selection record for {day}\n")
+        print(path.read_text(encoding="utf-8"), end="")
         return 0
 
     store = Store(args.db)
@@ -189,31 +217,51 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "edition":
+        from ai_buzz_radar.codex_cli import CodexCLI
         from ai_buzz_radar.editions import generate
+        from ai_buzz_radar.selection_log import selection_log_path
 
         today = datetime.now(TIMEZONE).date()
         day = args.day or today
         if day > today:
             parser.error("Cannot publish a future edition")
-        if args.daily and (args.day or args.pick or not 0 <= args.hour <= 23):
+        if args.daily and (args.day or args.pick or args.reselect or not 0 <= args.hour <= 23):
             parser.error("--daily uses today's date, automatic selection and an hour from 0 to 23")
+
+        def edition_client():
+            return nullcontext(CodexCLI()) if args.engine == "codex" else open_client()
+
         if args.daily:
             last_attempt = None
-            with open_client() as client:
+            with edition_client() as client:
                 while True:
                     now = datetime.now(TIMEZONE)
                     if now.hour >= args.hour and now.date() != last_attempt:
                         last_attempt = now.date()
                         try:
                             generate(client, store, args.budget_usd, last_attempt, args.output)
+                            record_path = selection_log_path(args.output, last_attempt)
+                            if record_path.exists():
+                                logger.info("Selection record: %s", record_path)
                         except (APIError, OSError, ValueError, RuntimeError) as err:
                             logger.error("Edition %s: %s", last_attempt, describe_error(err))
                     sleep(60)
         try:
             existing = (args.output / "editions" / f"{day}.json").exists()
-            with nullcontext() if existing else open_client() as client:
-                edition = generate(client, store, args.budget_usd, day, args.output, args.pick)
+            with nullcontext() if existing and not args.reselect else edition_client() as client:
+                edition = generate(
+                    client,
+                    store,
+                    args.budget_usd,
+                    day,
+                    args.output,
+                    args.pick,
+                    reselect=args.reselect,
+                )
             print(args.output / f"agent-reading-{edition.day}.html")
+            record_path = selection_log_path(args.output, edition.day)
+            if record_path.exists():
+                print(record_path)
         except (APIError, OSError, ValueError, RuntimeError) as err:
             logger.error("%s", describe_error(err))
             return 1

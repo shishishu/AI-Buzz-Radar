@@ -1,0 +1,156 @@
+{
+  "ranking_request_id": "01a210bf-6977-7882-91a7-f0efa7caa997",
+  "day": "2026-11-25",
+  "articles": [
+    {
+      "title": "Fidelity Collapses with Table Size, Not Turn Count: Delivery Architecture in a Deployed Tool-Using Agent",
+      "url": "https://arxiv.org/html/2611.00442v1",
+      "published": "2026-10-30",
+      "source": "arXiv",
+      "request_id": "01a210c2-b11e-7412-adfd-2cb87a5f913d",
+      "translation_url": null,
+      "note": "",
+      "note_en": "",
+      "draft": {
+        "topic": "工具结果交付",
+        "overview": "评估多轮筛选中让结果表绕过模型、从会话状态直接交付的收益",
+        "reason": "为多轮查询智能体制定验收标准的工程师，可据此判断是否要按输入表的行数分档，逐档核对筛选结果。",
+        "blocks": [
+          {
+            "body": "在机票查询实验中，让模型筛选并重述记录时，输入表越大，首次筛选就越容易答错。旁路方案把记录留在会话状态，让模型生成筛选参数，由工具执行筛选，再通过类型化通道交付结果行。\n作者从六条航线同一舱等的冻结结果中各取前若干行，每次都只筛选下午起飞的航班。输入从 5 行增至 100 行时，Gemini 2.5 Flash 重述结果的满分率从 83% 降至 6%，旁路在整组实验的 93 次运行中均获满分。",
+            "section": 18,
+            "evidence": "from 83% at K=5 to 6% at K=100 while BYPASS is perfect in all 93 runs"
+          },
+          {
+            "body": "实验同时引入了跨轮保存记录和绕过模型交付结果两项改动，只测出了两者的合计收益。\n可固定会话状态和筛选参数，按业务中常见的表长回放，对两条路径逐行核对记录及字段。若模型重述在常见的最大表上也能稳定达到验收标准，可暂缓引入旁路。",
+            "section": 36,
+            "evidence": "attributable to the pair, not to either member"
+          }
+        ]
+      },
+      "localization": {
+        "topic_en": "Tool result delivery",
+        "reason_en": "Engineers setting acceptance criteria for multi-turn query agents can use these results to decide whether to group tests by input row count and verify the filtered results at each size.",
+        "summary_en": "In a flight-search experiment, when the model filtered and re-emitted records, larger input tables led to more errors on the first filter request. The bypass design kept records in session state. The model supplied filter arguments, and a tool applied them and delivered the matching rows over a typed channel.\nThe authors took progressively longer prefixes of frozen results from six routes in a single cabin class, asking for afternoon departures each time. As the input grew from 5 to 100 rows, the share of Gemini 2.5 Flash responses earning full credit fell from 83% to 6%. The bypass design earned full credit in all 93 runs of the experiment.",
+        "thinking_en": "The experiment introduced two changes together, preserving records across turns and delivering results outside the model. It measured their combined benefit.\nA follow-up test could hold session state and filter arguments fixed, replay table sizes common in production, and check every row and field from both delivery paths. If model-generated results consistently meet the acceptance criteria even on the largest commonly seen tables, adopting a bypass could wait.",
+        "image_title_en": "Figure 2 · Fidelity as tool results grow",
+        "image_caption_en": "Each table grows by appending rows to a fixed payload. Across six routes, Flash synthesis falls to 6% fidelity at 100 rows. Direct delivery is correct in all 93 runs. Shading shows 95% Wilson intervals.",
+        "image_alt_en": "The orange synthesis curve drops as rows are added. The blue direct-delivery curve stays at 100%."
+      },
+      "process": null,
+      "figure": null,
+      "original_image": {
+        "title": "图 2 · 工具结果表变长时，交付准确率如何变化",
+        "caption": "同一份结果按行扩展。六条航线汇总后，Flash 转述组在 100 行时的准确率降至 6%，直接交付组的 93 次运行均正确。阴影为 95% Wilson 区间。",
+        "alt": "随行数增加，橙色模型转述曲线下降，蓝色直接交付曲线保持在 100%。",
+        "source_url": "https://arxiv.org/html/2611.00442v1#S5.F2",
+        "asset_url": "https://arxiv.org/html/2611.00442v1/fig3_topk.svg",
+        "filename": "677db8c639baf2bab57df4384d153ad562d49688a6e16a373f44c9ad9cb07281.png"
+      },
+      "links": [
+        "https://arxiv.org/html/2611.00442v1#S5.SS1.SSS0.Px1",
+        "https://arxiv.org/html/2611.00442v1#Sx1.SS0.SSS0.Px4"
+      ]
+    },
+    {
+      "title": "Inside the Codex sandbox",
+      "url": "https://openai.com/index/inside-the-codex-sandbox",
+      "published": "2026-11-18",
+      "source": "OpenAI",
+      "request_id": "01a210c4-66bb-7df2-9a9e-1538670a7059",
+      "translation_url": "https://openai.com/zh-Hans-CN/index/inside-the-codex-sandbox/",
+      "note": "上次入选于 2026-11-21",
+      "note_en": "Previously featured on 2026-11-21",
+      "draft": {
+        "topic": "命令执行沙箱",
+        "overview": "为本地 MCP 服务单独配置可写目录和联网权限",
+        "reason": "接入本地 MCP 服务的开发者可参考文中的记忆服务示例，判断哪些依赖可以提前备好，以及服务运行时还需要写入哪些目录。",
+        "blocks": [
+          {
+            "body": "Codex 的命令沙箱也能约束本地 MCP 服务。在沙箱内启动服务后，所选配置对文件和网络访问的限制会由子进程继承。\n作者先为记忆服务创建数据目录并缓存固定版本的 npm 包，再用 codex sandbox 按专用配置启动服务。在这些条件下，该服务可以离线启动，写入范围仅限于 npm 缓存和服务数据目录。",
+            "section": 21,
+            "evidence": "without network access, with writes limited to the npm cache and the server’s data directory"
+          },
+          {
+            "body": "对于配置文件中通过 stdio 接入的 MCP 服务，Codex 无法可靠推断它需要哪些文件或网络服务，因此不会自动将启动命令放入沙箱。\n建议先在禁网条件下测试启动和一次典型工具调用。若调用只有在特定域名可达时才成功，就为该服务配置代理，只放行该域名。",
+            "section": 18,
+            "evidence": "Codex cannot reliably infer which files or network services that server needs"
+          }
+        ]
+      },
+      "localization": {
+        "topic_en": "Command execution sandbox",
+        "reason_en": "Developers integrating a local MCP server can use the memory server example to decide which dependencies to prepare in advance and which directories the server still needs to write to at runtime.",
+        "summary_en": "The Codex command sandbox can also constrain a local MCP server. When the server starts inside the sandbox, its child processes inherit the selected profile’s filesystem and network restrictions.\nThe author created a data directory for the memory server and cached a pinned version of its npm package, then launched it with codex sandbox under a dedicated profile. Under those conditions, the server could start offline and write only to the npm cache and its data directory.",
+        "thinking_en": "Codex leaves the launch command for a configured stdio MCP server unsandboxed because it cannot reliably infer which files or network services the server needs.\nI’d test startup and one typical tool call with networking disabled. If the call succeeds only when a particular domain is reachable, I’d configure a proxy for that server to allow just that domain.",
+        "image_title_en": "How Codex applies a permission profile to a command",
+        "image_caption_en": "Codex launches the command under the session’s permission profile. Child processes inherit the sandbox restrictions. When enabled, the network proxy enforces domain rules.",
+        "image_alt_en": "Flow diagram showing how configuration and managed requirements define the session’s permission profile. Codex uses the profile to launch a command in a sandbox on macOS, Linux, or Windows. Child processes inherit the restrictions, and an optional network proxy filters requests by domain."
+      },
+      "process": null,
+      "figure": null,
+      "original_image": {
+        "title": "Codex 如何把权限配置应用到命令",
+        "caption": "Codex 按会话权限配置启动命令，子进程继承沙箱限制。启用网络代理时，由代理执行域名规则。",
+        "alt": "流程图中，配置和管理员设定的约束共同确定会话权限配置。Codex 据此在 macOS、Linux 或 Windows 的沙箱中启动命令。子进程继承限制，可选的网络代理按域名规则筛选请求。",
+        "source_url": "https://openai.com/index/inside-the-codex-sandbox",
+        "asset_url": "https://images.ctfassets.net/kftzwdyauwt9/7phvBtHTMSTY6vHJx9YL9L/0a4cf5a80f25882a663681872f648617/codex-sandbox-command-desktop-light.png?w=1080&q=90&fm=webp",
+        "filename": "74f94b4b39f0ed4ee3ac375a02fef9debf378e8fde8f3e36db6d8c15258c4e88.webp"
+      },
+      "links": [
+        "https://openai.com/index/inside-the-codex-sandbox#:~:text=without%20network%20access%2C%20with%20writes%20limited%20to%20the%20npm%20cache%20and%20the%20server%E2%80%99s%20data%20directory",
+        "https://openai.com/index/inside-the-codex-sandbox#example-sandboxing-an-mcp-server"
+      ]
+    },
+    {
+      "title": "Building Evidence-Grounded Agent Memory with OpenWiki and Graphs",
+      "url": "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs",
+      "published": "2026-10-28",
+      "source": "LangChain",
+      "request_id": "01a210c2-b8bb-71e1-a107-2e0148ed62e2",
+      "translation_url": null,
+      "note": "",
+      "note_en": "",
+      "draft": {
+        "topic": "智能体记忆层",
+        "overview": "评估跨文档问答何时值得编译维基并接入证据图",
+        "reason": "需要复核智能体答案出处的工程师，可参考文中对引用重合度的评测，判断是否值得为维基中的陈述建立通往原文段落的证据图。",
+        "blocks": [
+          {
+            "body": "在跨文档问答中，OpenWiki 把分散的条款关系整理成维基，让智能体答得更准。用证据图把维基中的陈述连到原文段落后，多次作答时引用的依据也更稳定。\n作者用 111 份合成保险文档测试同一智能体，每题作答三次。在 50 道跨文档题上，准确性得分从关键词搜索的 0.10 升至使用维基的 0.52。相比单用维基，加入证据图后得分又提高了 27%，引用重合度翻倍。",
+            "section": 6,
+            "evidence": "Accuracy rose 27%, citation consistency doubled"
+          },
+          {
+            "body": "在单段查找题上，搜索和维基的得分接近，用时分别为 9 秒和 12 秒。文中每答对一题的成本只含检索与作答。\n可按实际提问频率重放两类查询，把编译和更新费用摊入每道答对的题。若维基在跨文档题上仍能提高得分，且每答对一题的总成本低于搜索，就为这类任务启用共享维基。",
+            "section": 4,
+            "evidence": "while latency increased from 9 to 12 seconds"
+          }
+        ]
+      },
+      "localization": {
+        "topic_en": "Agent memory layer",
+        "reason_en": "Engineers who need to audit the sources behind an agent’s answers can use the citation-overlap results to decide whether to build an evidence graph linking wiki statements to source passages.",
+        "summary_en": "On questions that spanned documents, agents answered more accurately when OpenWiki compiled the relationships among policy provisions into a wiki. Linking wiki statements to source passages through an evidence graph also made citations more consistent across runs.\nThe authors tested the same agent on 111 synthetic insurance documents and ran each question three times. On 50 cross-document questions, the accuracy score rose from 0.10 with keyword search to 0.52 with the wiki. Adding the graph raised the score a further 27% relative to the wiki alone and doubled citation overlap.",
+        "thinking_en": "On single-passage lookups, search and the wiki earned similar scores and took 9 and 12 seconds, respectively. The reported cost per correct answer covered only retrieval and answering.\nReplay both question types at their observed frequencies and include compilation and update costs in the cost per correct answer. If the wiki still improves cross-document scores and costs less per correct answer than search, use a shared wiki for those tasks.",
+        "image_title_en": "Three memory setups on cross-document questions",
+        "image_caption_en": "Moving from the wiki alone to a wiki with an evidence graph raised accuracy from 0.52 to 0.66 and cut median answer time from 30 to 18 seconds in the authors’ evaluation.",
+        "image_alt_en": "Four charts compare accuracy, citation consistency, cost per correct answer, and median latency with search alone, a wiki, or a wiki plus an evidence graph."
+      },
+      "process": null,
+      "figure": null,
+      "original_image": {
+        "title": "三种记忆方案怎样回答跨文档查询",
+        "caption": "作者比较了三种方案。从单用 wiki 到加入证据图，正确率从 0.52 升到 0.66，中位回答时间从 30 秒降到 18 秒。",
+        "alt": "原文四幅柱状图比较仅搜索、只用 wiki 及 wiki 加证据图的正确率、引用一致性、每个正确回答的成本和中位回答时间。",
+        "source_url": "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Better%20accuracy%2C%20lower%20cost%2C%20faster%20answers",
+        "asset_url": "https://cdn.prod.website-files.com/65c81e88c254bb0f97633a71/6ae0e289d91ee9dbea7c7433_Wiki%20and%20Graph%20results%20for%20agent%20memory.png",
+        "filename": "89f2c95cd73d5cdcf8e73fc98cc2ec6685f15155c795b866a54a4489cd86ec0c.png"
+      },
+      "links": [
+        "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Accuracy%20rose%2027%25%2C%20citation%20consistency%20doubled",
+        "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=while%20latency%20increased%20from%209%20to%2012%20seconds"
+      ]
+    }
+  ]
+}
