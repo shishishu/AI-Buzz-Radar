@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-25T19:27:44.454916+08:00",
+  "updated_at": "2026-11-25T19:34:02.644439+08:00",
   "ranking_request_id": "01a210bf-6977-7882-91a7-f0efa7caa997",
   "day": "2026-11-25",
   "articles": [
@@ -13,27 +13,27 @@
       "note": "",
       "note_en": "",
       "draft": {
-        "topic": "工具结果交付",
+        "topic": "航班清单",
         "overview": "评估多轮筛选中让结果表绕过模型、从会话状态直接交付的收益",
-        "reason": "同样筛选下午起飞的航班，结果表从 5 行增至 100 行，Gemini 2.5 Flash 转述结果的满分率从 83% 降到 6%。改由工具直接交付结果，这组实验的 93 次运行全部答对。",
+        "reason": "订票助手查到了航班，为什么最后给你的清单还会错？研究者让助手挑出下午起飞的航班。清单越长，模型重新列出结果时越容易出错；让模型只说筛选条件，由程序直接交付符合条件的航班，这组实验里 93 次都答对了。",
         "blocks": [
           {
-            "body": "作者固定六条航线的查询结果，每次只取表的前若干行。小表就是大表的开头，同一条筛选指令在每个表长、每条航线上各测三次。模型在第一轮筛选就出现了随表长增加而变多的错误。\n两条路径的区别在于谁交付记录：一条由模型筛选并重述航班；另一条把记录保存在会话里，由模型给出筛选条件，工具执行后直接返回匹配的行。",
+            "body": "研究者保存了六条航线的查询结果。每次从同一张表的开头多取一些航班，再问同一个问题。这样就能单独观察清单变长的影响。\n让 Gemini 2.5 Flash 自己列出航班时，输入 5 行，83% 的回答拿到满分；输入 100 行，只有 6%。差距在第一次筛选时就出现了。",
             "section": 18,
             "evidence": "from 83% at K=5 to 6% at K=100 while BYPASS is perfect in all 93 runs"
           },
           {
-            "body": "直接交付方案同时改了两件事：跨轮保存记录，以及由工具返回结果。实验测到的是两者合起来的收益。\n如果你的智能体已经保存了工具结果，可以用同一份记录和筛选条件分别走两条交付路径，逐行核对。这样才能看出，仅换掉最后的转述步骤能挽回多少错误。",
+            "body": "直接交付清单的方案还做了另一件事：它把原始记录保存在会话里。实验测到的是两项改动加在一起的效果。\n下次看助手演示订票或查库存，可以让它处理一张长表，把最终清单和工具查到的记录逐行对一遍。屏幕上的“查询成功”只回答了前半个问题。",
             "section": 36,
             "evidence": "attributable to the pair, not to either member"
           }
         ]
       },
       "localization": {
-        "topic_en": "Tool result delivery",
-        "reason_en": "Asked for the same afternoon flights, Gemini 2.5 Flash earned full credit in 83% of runs with 5 input rows and just 6% with 100. When the tool delivered the matching rows directly, all 93 runs in this experiment earned full credit.",
-        "summary_en": "The authors froze the results for six routes and took progressively longer prefixes of each table. Every small table was the start of its larger counterpart. They repeated the same filter three times per route at each shared table size. Errors grew with table size on the very first filter request.\nIn one setup the model filtered and restated the flights. In the other, the records stayed in session state. The model supplied the filter arguments and a tool returned the matching rows directly.",
-        "thinking_en": "Direct delivery changed two things together: records persisted across turns, and the tool delivered the results. The experiment measured their combined benefit.\nIf your agent already stores tool results, replay the same records and filter arguments through both delivery paths. Comparing rows field by field isolates the errors you could avoid by changing only the final handoff.",
+        "topic_en": "Flight lists",
+        "reason_en": "A flight search finds the right records. How can the assistant still hand you the wrong list? Asked to pick afternoon departures, the model made more mistakes as the list grew. When the model supplied only the filter and a program returned the matching flights, all 93 runs in this experiment earned full credit.",
+        "summary_en": "The researchers saved results for six routes. They took progressively more flights from the start of each route’s table and asked the same question each time. That let them isolate the effect of list length.\nWhen Gemini 2.5 Flash listed the flights itself, 83% of answers earned full credit on five rows and only 6% on 100 rows. The gap showed up on the very first filter request.",
+        "thinking_en": "The direct-delivery setup also saved the original records across turns. The experiment measured the combined effect of both changes.\nNext time you see a booking or inventory demo, try a long list and compare the final answer with the tool’s records, row by row. The “search successful” message tells you only how the first half went.",
         "image_title_en": "Figure 2 · Fidelity as tool results grow",
         "image_caption_en": "Each table grows by appending rows to a fixed payload. Across six routes, Flash synthesis falls to 6% fidelity at 100 rows. Direct delivery is correct in all 93 runs. Shading shows 95% Wilson intervals.",
         "image_alt_en": "The orange synthesis curve drops as rows are added. The blue direct-delivery curve stays at 100%."
@@ -63,27 +63,27 @@
       "note": "上次入选于 2026-11-21",
       "note_en": "Previously featured on 2026-11-21",
       "draft": {
-        "topic": "命令执行沙箱",
+        "topic": "工具权限",
         "overview": "为本地 MCP 服务单独配置可写目录和联网权限",
-        "reason": "在 Codex 配置里接入本地 stdio MCP 服务，启动命令默认仍以当前用户的权限运行。OpenAI 用一个记忆服务演示了另一种配置：离线启动，只允许写入 npm 缓存和服务的数据目录。",
+        "reason": "给编程助手装一个记笔记的工具，它能改动电脑上的哪些文件？在 Codex 里，按文中的默认方式接入这个本地工具，它就有了和你一样的文件与联网权限。作者让它照样能记笔记，却只能写两个指定目录，连网也用不着。",
         "blocks": [
           {
-            "body": "示例先创建记忆服务的数据目录，把固定版本的 npm 包存入缓存。接着用专用权限配置启动服务，让它从缓存加载依赖。\n文件与网络限制会由子进程继承。这样即使服务通过 npx 启动，也能在禁网时读到所需的包，并在指定目录保存记忆。",
+            "body": "这个记忆工具通过 MCP 接入 Codex，在你的电脑上作为单独的程序运行。文章考察的是一种叫 stdio 的本地连接方式。作者先建好笔记目录，把指定版本的软件包下载到缓存，再把工具放进沙箱，也就是一个限制程序权限的运行环境。\n下次启动时，工具从缓存读软件包，把笔记存进数据目录。即使关闭网络、只允许写入缓存和数据目录，它也能启动。",
             "section": 21,
             "evidence": "without network access, with writes limited to the npm cache and the server’s data directory"
           },
           {
-            "body": "Codex 无法从启动命令推断服务实际需要哪些文件或网络资源。同样能离线启动的两个服务，执行工具调用时可能需要不同的权限。\n配置自己的服务时，可以分开验证启动和一次典型调用。若只有调用失败，再核对它需要的目录或域名，比直接给整个服务放宽权限更有针对性。",
+            "body": "Codex 单凭启动命令，推断不出一个工具为了工作需要哪些文件或网络服务。这些权限要由接入工具的人决定。\n看一个工具的安装说明时，可以找两个答案：我的笔记会存在哪里？它还被允许写到哪里？前者告诉你去哪儿找笔记，后者才告诉你一次误操作可能波及什么。",
             "section": 18,
             "evidence": "Codex cannot reliably infer which files or network services that server needs"
           }
         ]
       },
       "localization": {
-        "topic_en": "Command execution sandbox",
-        "reason_en": "A local stdio MCP server configured in Codex starts with the permissions of the user running Codex. OpenAI shows how to start a memory server offline and limit its writes to the npm cache and its own data directory.",
-        "summary_en": "The example creates a data directory, caches a pinned npm package, and then starts the memory server under a dedicated permission profile so it can load the dependency locally.\nChild processes inherit the filesystem and network restrictions. Even when launched through npx, the server can read its cached package with networking disabled and save memories in the designated directory.",
-        "thinking_en": "Codex cannot infer which files or network services a server needs from its launch command. Two servers that start offline may still need different permissions when a tool is called.\nTest startup and one typical call separately. If only the call fails, identify the directory or domain it needs before relaxing permissions for the whole server.",
+        "topic_en": "Tool permissions",
+        "reason_en": "You give a coding assistant a note-taking tool. Which files on your computer can it change? In the local setup shown for Codex, the tool starts with your own file and network permissions. The author shows that it can still keep notes with writes limited to two directories and networking switched off.",
+        "summary_en": "The memory tool connects to Codex through MCP and runs as a separate program on your computer. The example uses a local connection called stdio. The author creates a notes directory, caches a specific version of the software package, and launches the tool in a sandbox that limits its permissions.\nAt startup the tool reads the package from the cache. It can start offline, with writes allowed only to the cache and its data directory.",
+        "thinking_en": "Codex cannot tell from a launch command which files or network services a tool needs. The person connecting the tool has to make that decision.\nWhen reading an installation guide, look for two answers: where will my notes be saved, and where else is the tool allowed to write? The first helps you find your notes. The second tells you what an accidental change could affect.",
         "image_title_en": "How Codex applies a permission profile to a command",
         "image_caption_en": "Codex launches the command under the session’s permission profile. Child processes inherit the sandbox restrictions. When enabled, the network proxy enforces domain rules.",
         "image_alt_en": "Flow diagram showing how configuration and managed requirements define the session’s permission profile. Codex uses the profile to launch a command in a sandbox on macOS, Linux, or Windows. Child processes inherit the restrictions, and an optional network proxy filters requests by domain."
@@ -113,27 +113,27 @@
       "note": "",
       "note_en": "",
       "draft": {
-        "topic": "智能体记忆层",
+        "topic": "跨文档问答",
         "overview": "评估跨文档问答何时值得编译维基并接入证据图",
-        "reason": "给智能体加一份维基，值不值取决于问题。在合成保险文档上，单段查找用关键词搜索同样准、还更快；遇到需要串联多份文档的问题，维基把准确性得分从 0.10 提到 0.52（满分 1）。",
+        "reason": "假设一份保单有了补充条款，原来的约定还算数吗？搜到旧条款很容易，弄清哪一条改了哪一条才难。在模拟保险文档上，事先把条款关系整理成一本可查的手册，助手更会回答这类问题；只查一段原文时，直接搜索反而更快，得分也相近。",
         "blocks": [
           {
-            "body": "作者固定模型、指令和 111 份文档，把问题分成 80 道单段查找题和 50 道跨文档题，每题问三次，分别看答案得分和引用段落的重合度。\n维基能帮智能体串起分散的条款，但同一道题可能引出不同依据。作者把维基中的陈述连到原文段落；在跨文档题上，得分从 0.52 升至 0.66，三次回答的引用重合度翻倍。",
+            "body": "研究者用 111 份模拟文档编了两类题：80 道只需找到一段话，50 道要把不同文件里的线索连起来。同一个助手做跨文档题，直接搜索得 0.10 分，有了手册得 0.52 分，满分为 1。\n再把手册里的说法逐条连回原文段落，得分升到 0.66。同一道题问三遍，答案引用相同证据的程度也翻了一倍。",
             "section": 6,
             "evidence": "Accuracy rose 27%, citation consistency doubled"
           },
           {
-            "body": "文中的每题成本只算检索与作答。最初编译 111 份文档另花了 4.15 美元，后来每新增一份约花 0.09 美元。\n如果知识库更新频繁，可以按真实比例回放查找题和跨文档题，再把维护费用摊到每道答对的题上。这才是决定要不要长期维护维基的成本。",
-            "section": 4,
-            "evidence": "The analysis below excludes compilation and update costs"
+            "body": "这项测试把“答得对”和“三次回答引用了相同段落”分开计分。一个助手完全可能每次都引用同一条旧规定，给出同一个错答。\n下次让助手解释一份改过的合同，可以请它同时找出原条款和修改它的那段文字。两段放在一起，你才有材料自己判断哪一条适用。",
+            "section": 3,
+            "evidence": "whether the agent reliably grounds its answers in the same sources"
           }
         ]
       },
       "localization": {
-        "topic_en": "Agent memory layer",
-        "reason_en": "A wiki helped when an agent had to connect insurance documents. On synthetic policies, single-passage lookups were about as accurate and faster with keyword search. On cross-document questions, the wiki raised the accuracy score from 0.10 to 0.52 out of 1.",
-        "summary_en": "The authors held the model, instructions and 111 documents constant. They asked 80 single-passage questions and 50 cross-document questions three times each, scoring answers and measuring how often the same passages were cited.\nThe wiki helped connect scattered provisions, but answers to the same question could cite different evidence. Linking wiki claims to source paragraphs raised the cross-document score from 0.52 to 0.66 and doubled citation overlap across runs.",
-        "thinking_en": "The reported cost per answer covered retrieval and answering. Compiling the initial 111 documents cost another $4.15, and each document added later cost about $0.09.\nFor a frequently updated collection, replay the actual mix of lookups and cross-document questions. Allocate maintenance costs across correct answers before deciding whether the wiki is worth keeping.",
+        "topic_en": "Reading across files",
+        "reason_en": "Suppose a policy has an amendment. Does the original promise still hold? Finding the old clause is easy; working out what changed is harder. On simulated insurance documents, an assistant answered these questions better with a guide to how clauses connect. For a single-passage lookup, plain search was faster and scored about as well.",
+        "summary_en": "The researchers used 111 simulated documents to build 80 single-passage questions and 50 that required connecting different files. On the cross-document questions, the same assistant scored 0.10 out of 1 with search and 0.52 with a compiled guide.\nLinking individual claims in the guide back to source paragraphs raised the score to 0.66. When the researchers asked each question three times, overlap between the passages cited also doubled.",
+        "thinking_en": "The study scored correctness separately from citing the same passages across three answers. An assistant could consistently cite an outdated rule and consistently get the answer wrong.\nNext time an assistant explains an amended contract, ask it to find both the original clause and the passage that changed it. Seeing them side by side gives you a way to judge which one applies.",
         "image_title_en": "Three memory setups on cross-document questions",
         "image_caption_en": "Moving from the wiki alone to a wiki with an evidence graph raised accuracy from 0.52 to 0.66 and cut median answer time from 30 to 18 seconds in the authors’ evaluation.",
         "image_alt_en": "Four charts compare accuracy, citation consistency, cost per correct answer, and median latency with search alone, a wiki, or a wiki plus an evidence graph."
@@ -150,7 +150,7 @@
       },
       "links": [
         "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=Accuracy%20rose%2027%25%2C%20citation%20consistency%20doubled",
-        "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=The%20analysis%20below%20excludes%20compilation%20and%20update%20costs"
+        "https://www.langchain.com/blog/building-agent-memory-openwiki-graphs#:~:text=whether%20the%20agent%20reliably%20grounds%20its%20answers%20in%20the%20same%20sources"
       ]
     }
   ]

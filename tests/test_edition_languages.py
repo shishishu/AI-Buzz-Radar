@@ -29,8 +29,8 @@ class ReadingLanguageTest(unittest.TestCase):
         self.assertFalse(page.footer.select('a[href="index.html"]'))
         self.assertNotIn("最新一期", page.footer.get_text())
         self.assertEqual(
-            page.footer.select_one('[data-en="Edited by Mr. Tree & GPT"]').get_text(),
-            "编辑：树先生 & GPT",
+            page.footer.select_one('[data-en="Edited by shishishu & GPT"]').get_text(),
+            "编辑：shishishu & GPT",
         )
         self.assertIsNotNone(issue.updated_at)
         self.assertEqual(page.footer.time["datetime"], issue.updated_at.isoformat())
