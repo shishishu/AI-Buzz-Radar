@@ -1057,9 +1057,16 @@ def article_html(md, image_data=None, image_type=None, lang="zh"):
         label.string = en if lang == "en" else zh
         toggle.append(label)
     details.append(toggle)
-    summary_heading.insert_before(details)
+    editorial_note = summary_heading.find_previous_sibling()
+    body_start = editorial_note if editorial_note.name == "blockquote" else summary_heading
+    body_start.insert_before(details)
+    body = soup.new_tag("div", attrs={"class": "article-body"})
     for node in list(details.next_siblings):
-        details.append(node.extract())
+        body.append(node.extract())
+    close = soup.new_tag("button", type="button", attrs={"class": "close-card"})
+    close.string = "Back to card" if lang == "en" else "收起并返回卡片"
+    body.append(close)
+    details.append(body)
     return Markup(str(soup))
 
 

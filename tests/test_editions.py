@@ -123,7 +123,10 @@ class EditionTest(unittest.TestCase):
                 page = BeautifulSoup(latest.decode(), "html.parser")
                 self.assertEqual(len(page.select("article figure > img")), 3)
                 self.assertEqual(len(page.select("article h3")), 9)
-                self.assertEqual(len(page.select("article details > .full")), 3)
+                self.assertEqual(len(page.select("article.reading-card > details:not([open])")), 3)
+                self.assertEqual(len(page.select("article details .close-card[type=button]")), 3)
+                self.assertFalse(page.select("article > blockquote"))
+                self.assertEqual(len(page.select("article details > .article-body > .full")), 3)
                 self.assertFalse(page.select("nav a"))
                 self.assertEqual(
                     [tag.get_text() for tag in page.select("article .meta em")], ["首次入选"] * 3

@@ -11,7 +11,7 @@
 <button type="button" lang="zh-CN" data-language="zh" aria-pressed="true">中文</button>
 <button type="button" lang="en" data-language="en" aria-pressed="false">English</button></div>{% endif %}</header>
 <div class="mast"><h1 data-en="Agent Systems Daily">Agent 系统日报</h1><p><time datetime="{{ day }}" data-en="{{ day.strftime('%B') }} {{ day.day }}, {{ day.year }}">{{ day.strftime('%Y 年 %m 月 %d 日') }}</time> <span>·</span> <span data-en="{{ cards|length }} articles">{{ cards|length }} 篇</span></p></div>
-{% for card in cards %}<article>{{ like_button(article_keys[loop.index0], "为文章点赞", "Like article") }}{{ card }}</article>{% endfor %}
+{% for card in cards %}<article class="reading-card">{{ like_button(article_keys[loop.index0], "为文章点赞", "Like article") }}{{ card }}</article>{% endfor %}
 <footer><div class="edition-credit"><span data-en="Edited by Mr. Tree &amp; GPT">编辑：树先生 &amp; GPT</span>
 {% if updated_at %}<span><span data-en="Updated">更新于</span> <time datetime="{{ updated_at.isoformat() }}">{{ updated_at.strftime('%Y-%m-%d %H:%M') }} UTC+8</time></span>{% endif %}
 </div><div class="engagement"><span><span data-en="Views">浏览量</span> <span id="views">—</span></span>{{ like_button("likes", "为日报点赞", "Like the daily") }}</div>{% if compare %}<a href="{{ compare[0] }}" data-follow-language data-en="Compare editions · {{ compare[1] }}">同日对照 · {{ compare[1] }}</a>{% endif %}<a href="#" data-en="Back to top ↑">回到顶部 ↑</a></footer><div id="counter-status" role="status" aria-live="polite"></div></main>
@@ -102,5 +102,27 @@ if (new URL(location.href).searchParams.get("lang") === "en") displayLanguage("e
 switcher.hidden = false;
 </script>
 {% endif %}
+<script>
+const cardList = document.querySelector("main");
+cardList.classList.add("interactive-cards");
+cardList.addEventListener("click", event => {
+  const card = event.target.closest(".reading-card");
+  if (!card || event.defaultPrevented) return;
+  const details = card.querySelector(".article-details");
+  if (event.target.closest(".close-card")) {
+    details.open = false;
+    details.querySelector("summary").focus({preventScroll: true});
+    if (card.getBoundingClientRect().top < 0) {
+      card.scrollIntoView({
+        block: "start",
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"
+      });
+    }
+  } else if (!details.open && !event.target.closest("summary, button, a, input, select, textarea")
+             && !window.getSelection()?.toString()) {
+    details.open = true;
+  }
+});
+</script>
 <script>{% include "edition-counters.js" %}</script>
 </body></html>
