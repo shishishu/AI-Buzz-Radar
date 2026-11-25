@@ -93,7 +93,7 @@ class EditionTest(unittest.TestCase):
                 patch("ai_buzz_radar.editions.discover", return_value=(rows, [])),
                 patch(
                     "ai_buzz_radar.editions.write_article",
-                    side_effect=lambda c, s, b, d, i, n, loader, output_folder: fixture(i.url),
+                    side_effect=lambda c, s, b, d, item, *rest: fixture(item.url),
                 ) as writer,
             ):
                 with self.assertRaises(ValueError):
@@ -141,7 +141,7 @@ class EditionTest(unittest.TestCase):
                 patch("ai_buzz_radar.editions.discover", return_value=(rows, [])),
                 patch(
                     "ai_buzz_radar.editions.write_article",
-                    side_effect=lambda c, s, b, d, i, n, loader, output_folder: fixture(i.url),
+                    side_effect=lambda c, s, b, d, item, *rest: fixture(item.url),
                 ),
             ):
                 original = generate(None, store, 1, DAY, folder, urls[:3])
@@ -252,6 +252,17 @@ class EditionTest(unittest.TestCase):
             self.assertEqual(first_page.read_text(), "Already published")
             self.assertEqual((folder / "index.html").read_bytes(), latest)
 
+    def test_fine_ranking_requires_reader_value_for_every_eligible_item(self):
+        decision = dict(
+            url=URL, eligible=True, genre="技术解析", reason="有可复核的实验",
+            section=0, evidence="matched trials", reader_value="  ",
+        )
+        with self.assertRaisesRegex(ValueError, "reader_value"):
+            FineRanking(decisions=[decision], portfolio_reason="问题互补")
+        decision.update(eligible=False, reader_value="")
+        result = FineRanking(decisions=[decision], portfolio_reason="问题互补")
+        self.assertFalse(result.decisions[0].eligible)
+
     def test_three_stages_keep_evidence_reasons_reserves_and_no_history_in_model_inputs(self):
         urls = [URL + str(i) for i in range(9)]
         rows = [Candidate("Study " + str(i), u, DAY, "Test", "") for i, u in enumerate(urls)]
@@ -277,7 +288,7 @@ class EditionTest(unittest.TestCase):
                 ), "coarse-call"
             self.assertIs(schema, FineRanking)
             self.assertEqual(len(payload["candidates"]), 6)
-            self.assertEqual(payload["audience"], "Agent 开发者")
+            self.assertIn("可能从未开发过", payload["audience"])
             for row in payload["candidates"]:
                 self.assertIn("matched trials", row["sections"][0]["text"])
             return schema(
@@ -286,6 +297,7 @@ class EditionTest(unittest.TestCase):
                     dict(
                         url=urls[i],
                         eligible=i != 3,
+                        reader_value=f"读者在情境 {i} 下可以核对工具的结果。" if i != 3 else "",
                         genre="实战复盘" if i % 2 else "技术解析",
                         section=0,
                         evidence="matched trials",
@@ -301,6 +313,8 @@ class EditionTest(unittest.TestCase):
             return source
 
         def write(*args):
+            i = urls.index(args[4].url)
+            self.assertEqual(args[-1], f"读者在情境 {i} 下可以核对工具的结果。")
             if args[4].url == urls[1]:
                 raise ValueError("Evidence link missing")
             return fixture(args[4].url)
@@ -350,6 +364,10 @@ class EditionTest(unittest.TestCase):
             self.assertEqual(reviews[urls[3]]["status"], "excluded")
             self.assertEqual(reviews[urls[5]]["status"], "source_unavailable")
             self.assertEqual(reviews[urls[7]]["status"], "reserve")
+            self.assertIn("情境 7", reviews[urls[7]]["reader_value"])
+            report = selection_log_path(folder, tomorrow).with_suffix(".md").read_text()
+            for winner in log["selected"]:
+                self.assertIn(reviews[winner["url"]]["reader_value"], report)
             self.assertEqual(reviews[urls[4]]["evidence_url"], urls[4] + "#m")
             for review in reviews.values():
                 if "evidence" in review:
@@ -394,6 +412,7 @@ class EditionTest(unittest.TestCase):
                         dict(
                             url=item.url,
                             eligible=i < 3,
+                            reader_value="读者可以判断回答是否有依据。" if i < 3 else "",
                             genre="研究论文" if item in chosen_papers else "开发指南",
                             reason="原文提供了所需的证据",
                             section=0,

@@ -164,6 +164,8 @@ def _daily_summary(record, path):
         lines.append(
             f"{rank}. {genre}{_link(item['title'], item['url'])}　{_plain(item.get('reason', ''))}"
         )
+        if review.get("reader_value"):
+            lines.append("   对读者的重要性：" + _plain(review["reader_value"]))
         if record["mode"] == "editor_picks" and item.get("article_reason"):
             lines.append("   稿件推荐理由为" + _plain(item["article_reason"]))
         if review.get("evidence"):

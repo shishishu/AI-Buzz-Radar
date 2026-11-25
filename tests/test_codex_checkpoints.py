@@ -44,6 +44,7 @@ class CheckpointTest(unittest.TestCase):
                         dict(
                             url=url,
                             eligible=True,
+                            reader_value="读者可以核对助手是否漏掉工具返回的记录。",
                             genre="技术解析",
                             reason="证据",
                             section=0,
@@ -55,6 +56,7 @@ class CheckpointTest(unittest.TestCase):
                 }
             else:
                 self.assertIs(schema, IllustratedCopy)
+                self.assertIn("读者可以核对助手是否漏掉工具返回的记录。", prompt)
                 reply = {
                     "draft": {
                         "topic": "原型开发",
